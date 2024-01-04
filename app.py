@@ -46,19 +46,6 @@ def get_catalogue_urls():
     collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
     collectionPage, numTries = try_requests(collectionUrl)
 
-    # if not (type(collectionPage) == requests.models.Response
-    #     and collectionPage.status_code == 200
-    #     and 'json' in dir(collectionPage)
-    #     and type(collectionPage.json()) == dict
-    #     and 'hasPart' in collectionPage.json().keys()
-    #     and type(collectionPage.json()['hasPart']) == list
-    #     and all([type(i)==str for i in collectionPage.json()['hasPart']])
-    # ):
-    #     message = 'Can\'t get collection at: %s' % collectionUrl
-    #     set_message(message, 'error')
-    # else:
-    #     catalogueUrls.extend(collectionPage.json()['hasPart'])
-
     try:
         if (all([type(i)==str for i in collectionPage.json()['hasPart']])):
             catalogueUrls.extend(collectionPage.json()['hasPart'])
@@ -80,19 +67,6 @@ def get_dataset_urls():
 
     for catalogueUrl in catalogueUrls:
         cataloguePage, numTries = try_requests(catalogueUrl)
-
-        # if not (type(cataloguePage) == requests.models.Response
-        #     and cataloguePage.status_code == 200
-        #     and 'json' in dir(cataloguePage)
-        #     and type(cataloguePage.json()) == dict
-        #     and 'dataset' in cataloguePage.json().keys()
-        #     and type(cataloguePage.json()['dataset']) == list
-        #     and all([type(i)==str for i in cataloguePage.json()['dataset']])
-        # ):
-        #     message = 'Can\'t get catalogue at: %s' % catalogueUrl
-        #     set_message(message, 'error')
-        # else:
-        #     datasetUrls.extend(cataloguePage.json()['dataset'])
 
         try:
             if (all([type(i)==str for i in cataloguePage.json()['dataset']])):
@@ -194,14 +168,6 @@ def get_opportunities(feedUrl=None):
 
 def set_opportunities(feedUrl, opportunities):
     feedPage, numTries = try_requests(feedUrl)
-
-    # if not (type(feedPage) == requests.models.Response
-    #     and feedPage.status_code == 200
-    #     and 'json' in dir(feedPage)
-    #     and type(feedPage.json()) == dict
-    # ):
-    #     message = 'Can\'t get feed at: %s' % feedUrl
-    #     set_message(message, 'error')
 
     try:
         for item in feedPage.json()['items']:
