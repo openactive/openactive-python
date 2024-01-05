@@ -1,3 +1,4 @@
+import copy
 import json
 import requests
 from bs4 import BeautifulSoup
@@ -146,14 +147,33 @@ def get_feeds():
 
 # ----------------------------------------------------------------------------------------------------
 
+opportunitiesTemplate = {
+    'items': {},
+    'urls': [],
+}
 @application.route('/opportunities')
-def get_opportunities(feedUrl=None):
-    opportunities = {}
+def get_opportunities(arg=None):
 
-    if (stack()[1].function == 'dispatch_request'):
-        feedUrl = request.args.get('url')
+    if (    stack()[1].function == 'dispatch_request'
+        or  type(arg) == str
+    ):
+        opportunities = copy.deepcopy(opportunitiesTemplate)
+        if (stack()[1].function == 'dispatch_request'):
+            opportunities['urls'].append(request.args.get('url') or '')
+        elif (type(arg) == str):
+            opportunities['urls'].append(arg)
+    elif (  type(arg) == dict
+        and sorted(arg.keys()) == sorted(opportunitiesTemplate.keys())
+    ):
+        opportunities = arg
+    else:
+        message = 'Invalid input'
+        set_message(message, 'warning')
+        return
 
-    if (not feedUrl):
+    if (    len(opportunities['urls']) == 0
+        or  len(opportunities['urls'][-1]) == 0
+    ):
         if (stack()[1].function == 'dispatch_request'):
             message = 'Feed URL must be given as a parameter via "/opportunities?url=your-feed-url"'
             set_message(message, 'warning')
@@ -163,13 +183,7 @@ def get_opportunities(feedUrl=None):
             set_message(message, 'warning')
             return
 
-    set_opportunities(feedUrl, opportunities)
-
-    return list(opportunities.values())
-
-# ----------------------------------------------------------------------------------------------------
-
-def set_opportunities(feedUrl, opportunities):
+    feedUrl = opportunities['urls'][-1]
     feedPage, numTries = try_requests(feedUrl)
 
     try:
@@ -179,19 +193,22 @@ def set_opportunities(feedUrl, opportunities):
                 and 'modified' in item.keys()
             ):
                 if (item['state'] == 'updated'):
-                    if (    item['id'] not in opportunities.keys()
-                        or  item['modified'] > opportunities[item['id']]['modified']
+                    if (    item['id'] not in opportunities['items'].keys()
+                        or  item['modified'] > opportunities['items'][item['id']]['modified']
                     ):
-                        opportunities[item['id']] = item
+                        opportunities['items'][item['id']] = item
                 elif (  item['state'] == 'deleted'
-                    and item['id'] in opportunities.keys()
+                    and item['id'] in opportunities['items'].keys()
                 ):
-                    del(opportunities[item['id']])
+                    del(opportunities['items'][item['id']])
         if (feedPage.json()['next'] != feedUrl):
-            set_opportunities(feedPage.json()['next'], opportunities)
+            opportunities['urls'].append(feedPage.json()['next'])
+            opportunities = get_opportunities(opportunities)
     except:
         message = 'Can\'t get feed at: {}'.format(feedUrl)
         set_message(message, 'error')
+
+    return opportunities
 
 # ----------------------------------------------------------------------------------------------------
 
