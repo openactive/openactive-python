@@ -28,7 +28,7 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1):
 
     while (True):
         if (numTries == numTriesMax):
-            message = 'Max. tries (%i) reached for: %s' % (numTriesMax, url)
+            message = 'Max. tries ({}) reached for: {}'.format(numTriesMax, url)
             set_message(message, 'warning')
             break
         elif (numTries > 0):
@@ -55,7 +55,7 @@ def get_catalogue_urls():
         else:
             raise Exception()
     except:
-        message = 'Can\'t get collection at: %s' % collectionUrl
+        message = 'Can\'t get collection at: {}'.format(collectionUrl)
         set_message(message, 'error')
 
     return catalogueUrls
@@ -77,7 +77,7 @@ def get_dataset_urls():
             else:
                 raise Exception()
         except:
-            message = 'Can\'t get catalogue at: %s' % catalogueUrl
+            message = 'Can\'t get catalogue at: {}'.format(catalogueUrl)
             set_message(message, 'error')
 
     return datasetUrls
@@ -139,7 +139,7 @@ def get_feeds():
                             if (len(feedOut.keys()) > 1):
                                 feeds.append(feedOut)
         except:
-            message = 'Can\'t get dataset at: %s' % datasetUrl
+            message = 'Can\'t get dataset at: {}'.format(datasetUrl)
             set_message(message, 'error')
 
     return feeds
@@ -190,7 +190,7 @@ def set_opportunities(feedUrl, opportunities):
         if (feedPage.json()['next'] != feedUrl):
             set_opportunities(feedPage.json()['next'], opportunities)
     except:
-        message = 'Can\'t get feed at: %s' % feedUrl
+        message = 'Can\'t get feed at: {}'.format(feedUrl)
         set_message(message, 'error')
 
 # ----------------------------------------------------------------------------------------------------
