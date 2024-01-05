@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from flask import Flask, request
 from inspect import stack
 from termcolor import colored
+from time import sleep
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -21,7 +22,7 @@ def set_message(message, messageType=None):
 
 # ----------------------------------------------------------------------------------------------------
 
-def try_requests(url, numTriesMax=10):
+def try_requests(url, numTriesMax=10, timeWaitSeconds=1):
     r = None
     numTries = 0
 
@@ -30,6 +31,8 @@ def try_requests(url, numTriesMax=10):
             message = 'Max. tries (%i) reached for: %s' % (numTriesMax, url)
             set_message(message, 'warning')
             break
+        elif (numTries > 0):
+            sleep(timeWaitSeconds)
         r = requests.get(url)
         numTries += 1
         if (r.status_code == 200):
