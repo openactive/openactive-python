@@ -6,6 +6,7 @@ from flask import Flask, request
 from inspect import stack
 from termcolor import colored
 from time import sleep
+from urllib.parse import unquote, urlparse
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -150,48 +151,57 @@ def get_feeds():
 opportunitiesTemplate = {
     'items': {},
     'urls': [],
+    'firstPageOrigin': '',
+    'nextPage': '',
 }
 @application.route('/opportunities')
 def get_opportunities(arg=None):
 
-    if (    stack()[1].function == 'dispatch_request'
-        or  type(arg) == str
-    ):
-        opportunities = copy.deepcopy(opportunitiesTemplate)
-        if (stack()[1].function == 'dispatch_request'):
-            opportunities['urls'].append(request.args.get('url') or '')
-        elif (type(arg) == str):
-            opportunities['urls'].append(arg)
-    elif (  type(arg) == dict
-        and sorted(arg.keys()) == sorted(opportunitiesTemplate.keys())
-    ):
-        opportunities = arg
-    else:
-        message = 'Invalid input'
-        set_message(message, 'warning')
-        return
+    # This is a recursive function. On the first call the opportunities dictionary will be empty and so
+    # will be initialised. On subsequent automated internal calls it will have content to be added to.
+    # Also, if a call fails for some reason when running in some other code (i.e. when not running on a
+    # server), then the returned dictionary can be manually resubmitted as the argument instead of a starting
+    # URL string, and the code will determine the page in the RPDE stream to continue from.
 
-    if (    len(opportunities['urls']) == 0
-        or  len(opportunities['urls'][-1]) == 0
-    ):
-        if (stack()[1].function == 'dispatch_request'):
-            message = 'Feed URL must be given as a parameter via "/opportunities?url=your-feed-url"'
+    # For function calls when running on a server:
+    if (stack()[1].function == 'dispatch_request'):
+        if (len(request.args.get('url')) == 0):
+            message = 'Invalid input, feed URL must be given as a parameter via "/opportunities?url=your-feed-url"'
             set_message(message, 'warning')
             return message
+        opportunities = copy.deepcopy(opportunitiesTemplate)
+        opportunities['nextPage'] = set_url(request.args.get('url'), opportunities)
+    # For function calls when running in some other code:
+    elif (stack()[1].function == '<module>'):
+        if (type(arg) == str):
+            if (len(arg) == 0):
+                message = 'Invalid input, feed URL must be a string of non-zero length'
+                set_message(message, 'warning')
+                return
+            opportunities = copy.deepcopy(opportunitiesTemplate)
+            opportunities['nextPage'] = set_url(arg, opportunities)
+        elif (type(arg) == dict):
+            if (sorted(arg.keys()) != sorted(opportunitiesTemplate.keys())
+                or type(arg['nextPage'] != str)
+                or len(arg['nextPage']) == 0
+            ):
+                message = 'Invalid input, opportunities must be a dictionary with the expected content'
+                set_message(message, 'warning')
+                return
+            opportunities = arg
         else:
-            message = 'Feed URL must be given as a parameter via "get_opportunities(\'your-feed-url\')"'
+            message = 'Invalid input, must be a feed URL string or an opportunities dictionary'
             set_message(message, 'warning')
             return
-
-    feedUrl = opportunities['urls'][-1]
-    feedPage, numTries = try_requests(feedUrl)
+    # For function calls when running recursively:
+    elif (stack()[1].function == stack()[0].function):
+        opportunities = arg
 
     try:
+        feedUrl = opportunities['nextPage']
+        feedPage, numTries = try_requests(feedUrl)
         for item in feedPage.json()['items']:
-            if (    'id' in item.keys()
-                and 'state' in item.keys()
-                and 'modified' in item.keys()
-            ):
+            if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
                 if (item['state'] == 'updated'):
                     if (    item['id'] not in opportunities['items'].keys()
                         or  item['modified'] > opportunities['items'][item['id']]['modified']
@@ -201,14 +211,40 @@ def get_opportunities(arg=None):
                     and item['id'] in opportunities['items'].keys()
                 ):
                     del(opportunities['items'][item['id']])
-        if (feedPage.json()['next'] != feedUrl):
-            opportunities['urls'].append(feedPage.json()['next'])
+        opportunities['nextPage'] = set_url(feedPage.json()['next'], opportunities)
+        if (opportunities['nextPage'] != feedUrl):
+            opportunities['urls'].append(feedUrl)
             opportunities = get_opportunities(opportunities)
     except:
         message = 'Can\'t get feed at: {}'.format(feedUrl)
         set_message(message, 'error')
 
     return opportunities
+
+# ----------------------------------------------------------------------------------------------------
+
+def set_url(urlOriginal, opportunities):
+    url = ''
+
+    urlUnquoted = unquote(urlOriginal)
+    urlParsed = urlparse(urlUnquoted)
+
+    if (    urlParsed.scheme != ''
+        and urlParsed.netloc != ''
+    ):
+        if (len(opportunities['urls']) == 0):
+            opportunities['firstPageOrigin'] = '://'.join([urlParsed.scheme, urlParsed.netloc])
+        url = urlUnquoted
+    elif (  urlParsed.path != ''
+        or  urlParsed.query != ''
+    ):
+        url = opportunities['firstPageOrigin']
+        if (urlParsed.path != ''):
+            url += ('/' if urlParsed.path[0] != '/' else '') + urlParsed.path
+        if (urlParsed.query != ''):
+            url += ('?' if urlParsed.query[0] != '?' else '') + urlParsed.query
+
+    return url
 
 # ----------------------------------------------------------------------------------------------------
 
