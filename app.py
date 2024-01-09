@@ -11,6 +11,7 @@ from urllib.parse import unquote, urlparse
 # ----------------------------------------------------------------------------------------------------
 
 application = Flask(__name__)
+session = requests.Session()
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -24,6 +25,23 @@ def set_message(message, messageType=None):
 
 # ----------------------------------------------------------------------------------------------------
 
+# https://stackoverflow.com/a/65576055
+# https://stackoverflow.com/a/72666365
+
+# When making several requests to the same host, requests.get() can result in errors. For more robust
+# behaviour, requests.Session().get() is used herein. If there are further issues, then try uncommenting
+# the following code for even more supportive behaviour:
+
+# from requests.adapters import HTTPAdapter
+# from requests.packages.urllib3.util.retry import Retry
+# retry_strategy = Retry(
+#   total=3,
+#   backoff_factor=1
+# )
+# adapter = HTTPAdapter(max_retries=retry_strategy)
+# session.mount('https://', adapter)
+# session.mount('http://', adapter)
+
 def try_requests(url, numTriesMax=10, timeWaitSeconds=1):
     r = None
     numTries = 0
@@ -34,11 +52,18 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1):
             set_message(message, 'warning')
             break
         elif (numTries > 0):
+            message = 'Retrying ({}/{}): {}'.format(numTries, numTriesMax-1, url)
+            set_message(message, 'warning')
             sleep(timeWaitSeconds)
-        r = requests.get(url)
-        numTries += 1
-        if (r.status_code == 200):
-            break
+        try:
+            numTries += 1
+            r = session.get(url)
+            if (r.status_code == 200):
+                break
+        except Exception as error:
+            set_message(str(error), 'error')
+            # Continue otherwise we get kicked out of the while loop. This takes us to the top of the loop:
+            continue
 
     return r, numTries
 
