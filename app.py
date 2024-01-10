@@ -289,5 +289,36 @@ def set_url(urlOriginal, opportunities):
 
 # ----------------------------------------------------------------------------------------------------
 
+def get_item_kinds(opportunities):
+    itemKinds = {}
+
+    for item in opportunities['items'].values():
+        if ('kind' in item.keys()):
+            if (item['kind'] not in itemKinds.keys()):
+                itemKinds[item['kind']] = 1
+            else:
+                itemKinds[item['kind']] += 1
+
+    return itemKinds
+
+# ----------------------------------------------------------------------------------------------------
+
+def get_item_data_types(opportunities):
+    itemDataTypes = {}
+
+    for item in opportunities['items'].values():
+        if ('data' in item.keys()):
+            for type in ['type', '@type']:
+                if (type in item['data'].keys()):
+                    if (item['data'][type] not in itemDataTypes.keys()):
+                        itemDataTypes[item['data'][type]] = 1
+                    else:
+                        itemDataTypes[item['data'][type]] += 1
+                    break
+
+    return itemDataTypes
+
+# ----------------------------------------------------------------------------------------------------
+
 if (__name__ == '__main__'):
     application.run()
