@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from flask import Flask, request
 from inspect import stack
+from itertools import chain
 from termcolor import colored
 from time import sleep
 from urllib.parse import unquote, urlparse
@@ -42,7 +43,7 @@ def set_message(message, messageType=None):
 # session.mount('https://', adapter)
 # session.mount('http://', adapter)
 
-def try_requests(url, verbose=False, numTriesMax=10, timeWaitSeconds=1):
+def try_requests(url, numTriesMax=10, timeWaitSeconds=1, verbose=False):
     r = None
     numTries = 0
 
@@ -83,13 +84,13 @@ def get_catalogue_urls(verbose=False):
     collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
 
     try:
-        collectionPage, numTries = try_requests(collectionUrl, verbose)
+        collectionPage, numTries = try_requests(collectionUrl, verbose=verbose)
         if (all([type(i)==str for i in collectionPage.json()['hasPart']])):
             catalogueUrls.extend(collectionPage.json()['hasPart'])
         else:
             raise Exception()
     except:
-        message = 'Can\'t get collection at: {}'.format(collectionUrl)
+        message = 'Can\'t get collection: {}'.format(collectionUrl)
         set_message(message, 'error')
 
     return catalogueUrls
@@ -97,45 +98,50 @@ def get_catalogue_urls(verbose=False):
 # ----------------------------------------------------------------------------------------------------
 
 @application.route('/dataset-urls')
-def get_dataset_urls(verbose=False):
+def get_dataset_urls(flatten=False, verbose=False):
 
     # For function calls when running on a server:
     if (stack()[1].function == 'dispatch_request'):
         verbose = str(request.args.get('verbose')).lower() == 'true'
+        flatten = str(request.args.get('flatten')).lower() == 'true'
 
-    datasetUrls = []
+    datasetUrls = {}
 
     catalogueUrls = get_catalogue_urls()
 
     for catalogueUrl in catalogueUrls:
         try:
-            cataloguePage, numTries = try_requests(catalogueUrl, verbose)
+            cataloguePage, numTries = try_requests(catalogueUrl, verbose=verbose)
             if (all([type(i)==str for i in cataloguePage.json()['dataset']])):
-                datasetUrls.extend(cataloguePage.json()['dataset'])
+                datasetUrls[catalogueUrl] = cataloguePage.json()['dataset']
             else:
                 raise Exception()
         except:
-            message = 'Can\'t get catalogue at: {}'.format(catalogueUrl)
+            message = 'Can\'t get catalogue: {}'.format(catalogueUrl)
             set_message(message, 'error')
 
-    return datasetUrls
+    if (not flatten):
+        return datasetUrls
+    else:
+        return list(chain.from_iterable(datasetUrls.values()))
 
 # ----------------------------------------------------------------------------------------------------
 
 @application.route('/feeds')
-def get_feeds(verbose=False):
+def get_feeds(flatten=False, verbose=False):
 
     # For function calls when running on a server:
     if (stack()[1].function == 'dispatch_request'):
         verbose = str(request.args.get('verbose')).lower() == 'true'
+        flatten = str(request.args.get('flatten')).lower() == 'true'
 
-    feeds = []
+    feeds = {}
 
-    datasetUrls = get_dataset_urls()
+    datasetUrls = get_dataset_urls(flatten=True)
 
     for datasetUrl in datasetUrls:
         try:
-            datasetPage, numTries = try_requests(datasetUrl, verbose)
+            datasetPage, numTries = try_requests(datasetUrl, verbose=verbose)
             if (datasetPage.status_code == 200):
                 soup = BeautifulSoup(datasetPage.text, 'html.parser')
             else:
@@ -179,12 +185,17 @@ def get_feeds(verbose=False):
                                 feedOut['publisherName'] = ''
 
                             if (len(feedOut.keys()) > 1):
-                                feeds.append(feedOut)
+                                if (datasetUrl not in feeds.keys()):
+                                    feeds[datasetUrl] = []
+                                feeds[datasetUrl].append(feedOut)
         except:
-            message = 'Can\'t get dataset at: {}'.format(datasetUrl)
+            message = 'Can\'t get dataset: {}'.format(datasetUrl)
             set_message(message, 'error')
 
-    return feeds
+    if (not flatten):
+        return feeds
+    else:
+        return list(chain.from_iterable(feeds.values()))
 
 # ----------------------------------------------------------------------------------------------------
 
@@ -240,7 +251,7 @@ def get_opportunities(arg=None, verbose=False):
 
     try:
         feedUrl = opportunities['nextPage']
-        feedPage, numTries = try_requests(feedUrl, verbose)
+        feedPage, numTries = try_requests(feedUrl, verbose=verbose)
         for item in feedPage.json()['items']:
             if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
                 if (item['state'] == 'updated'):
@@ -257,7 +268,7 @@ def get_opportunities(arg=None, verbose=False):
             opportunities['urls'].append(feedUrl)
             opportunities = get_opportunities(opportunities)
     except:
-        message = 'Can\'t get feed at: {}'.format(feedUrl)
+        message = 'Can\'t get feed: {}'.format(feedUrl)
         set_message(message, 'error')
 
     return opportunities
