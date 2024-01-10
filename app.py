@@ -42,7 +42,7 @@ def set_message(message, messageType=None):
 # session.mount('https://', adapter)
 # session.mount('http://', adapter)
 
-def try_requests(url, numTriesMax=10, timeWaitSeconds=1):
+def try_requests(url, verbose=False, numTriesMax=10, timeWaitSeconds=1):
     r = None
     numTries = 0
 
@@ -56,6 +56,8 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1):
             set_message(message, 'warning')
             sleep(timeWaitSeconds)
         try:
+            if (verbose):
+                print(url)
             numTries += 1
             r = session.get(url)
             if (r.status_code == 200):
@@ -70,13 +72,18 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1):
 # ----------------------------------------------------------------------------------------------------
 
 @application.route('/catalogue-urls')
-def get_catalogue_urls():
+def get_catalogue_urls(verbose=False):
+
+    # For function calls when running on a server:
+    if (stack()[1].function == 'dispatch_request'):
+        verbose = str(request.args.get('verbose')).lower() == 'true'
+
     catalogueUrls = []
 
     collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
-    collectionPage, numTries = try_requests(collectionUrl)
 
     try:
+        collectionPage, numTries = try_requests(collectionUrl, verbose)
         if (all([type(i)==str for i in collectionPage.json()['hasPart']])):
             catalogueUrls.extend(collectionPage.json()['hasPart'])
         else:
@@ -90,15 +97,19 @@ def get_catalogue_urls():
 # ----------------------------------------------------------------------------------------------------
 
 @application.route('/dataset-urls')
-def get_dataset_urls():
+def get_dataset_urls(verbose=False):
+
+    # For function calls when running on a server:
+    if (stack()[1].function == 'dispatch_request'):
+        verbose = str(request.args.get('verbose')).lower() == 'true'
+
     datasetUrls = []
 
     catalogueUrls = get_catalogue_urls()
 
     for catalogueUrl in catalogueUrls:
-        cataloguePage, numTries = try_requests(catalogueUrl)
-
         try:
+            cataloguePage, numTries = try_requests(catalogueUrl, verbose)
             if (all([type(i)==str for i in cataloguePage.json()['dataset']])):
                 datasetUrls.extend(cataloguePage.json()['dataset'])
             else:
@@ -112,15 +123,19 @@ def get_dataset_urls():
 # ----------------------------------------------------------------------------------------------------
 
 @application.route('/feeds')
-def get_feeds():
+def get_feeds(verbose=False):
+
+    # For function calls when running on a server:
+    if (stack()[1].function == 'dispatch_request'):
+        verbose = str(request.args.get('verbose')).lower() == 'true'
+
     feeds = []
 
     datasetUrls = get_dataset_urls()
 
     for datasetUrl in datasetUrls:
-        datasetPage, numTries = try_requests(datasetUrl)
-
         try:
+            datasetPage, numTries = try_requests(datasetUrl, verbose)
             if (datasetPage.status_code == 200):
                 soup = BeautifulSoup(datasetPage.text, 'html.parser')
             else:
@@ -173,6 +188,12 @@ def get_feeds():
 
 # ----------------------------------------------------------------------------------------------------
 
+# This is a recursive function. On the first call the opportunities dictionary will be empty and so
+# will be initialised. On subsequent automated internal calls it will have content to be added to.
+# Also, if a call fails for some reason when running in some other code (i.e. when not running on a
+# server), then the returned dictionary can be manually resubmitted as the argument instead of a starting
+# URL string, and the code will determine the page in the RPDE stream to continue from.
+
 opportunitiesTemplate = {
     'items': {},
     'urls': [],
@@ -180,16 +201,11 @@ opportunitiesTemplate = {
     'nextPage': '',
 }
 @application.route('/opportunities')
-def get_opportunities(arg=None):
-
-    # This is a recursive function. On the first call the opportunities dictionary will be empty and so
-    # will be initialised. On subsequent automated internal calls it will have content to be added to.
-    # Also, if a call fails for some reason when running in some other code (i.e. when not running on a
-    # server), then the returned dictionary can be manually resubmitted as the argument instead of a starting
-    # URL string, and the code will determine the page in the RPDE stream to continue from.
+def get_opportunities(arg=None, verbose=False):
 
     # For function calls when running on a server:
     if (stack()[1].function == 'dispatch_request'):
+        verbose = str(request.args.get('verbose')).lower() == 'true'
         if (len(request.args.get('url')) == 0):
             message = 'Invalid input, feed URL must be given as a parameter via "/opportunities?url=your-feed-url"'
             set_message(message, 'warning')
@@ -224,7 +240,7 @@ def get_opportunities(arg=None):
 
     try:
         feedUrl = opportunities['nextPage']
-        feedPage, numTries = try_requests(feedUrl)
+        feedPage, numTries = try_requests(feedUrl, verbose)
         for item in feedPage.json()['items']:
             if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
                 if (item['state'] == 'updated'):
