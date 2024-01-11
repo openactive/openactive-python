@@ -331,5 +331,68 @@ def get_item_data_types(opportunities):
 
 # ----------------------------------------------------------------------------------------------------
 
+urlPartsGroups = {
+    'SessionSeries': [
+      'session-series',
+      'sessionseries',
+    ],
+    'ScheduledSession': [
+      'scheduled-sessions',
+      'scheduledsessions',
+      'scheduled-session',
+      'scheduledsession',
+    ],
+    'FacilityUse': [
+      'individual-facility-uses',
+      'individual-facilityuses',
+      'individualfacility-uses',
+      'individualfacilityuses',
+      'individual-facility-use',
+      'individual-facilityuse',
+      'individualfacility-use',
+      'individualfacilityuse',
+      'facility-uses',
+      'facilityuses',
+      'facility-use',
+      'facilityuse',
+    ],
+    'Slot': [
+      'slots',
+      'slot',
+      'facility-use-slots',
+      'facility-use-slot',
+      'facility-uses/events',
+      'facility-uses/event',
+    ],
+}
+def get_partner_url(feedUrl1, feedUrls):
+
+    urlPart1 = None
+    for urlPartsType,urlParts in urlPartsGroups.items():
+        for urlPart in urlParts:
+            if (urlPart in feedUrl1):
+                urlPart1 = urlPart
+                if (urlPartsType == 'SessionSeries'):
+                    urlParts2 = urlPartsGroups['ScheduledSession']
+                elif (urlPartsType == 'ScheduledSession'):
+                    urlParts2 = urlPartsGroups['SessionSeries']
+                elif (urlPartsType == 'FacilityUse'):
+                    urlParts2 = urlPartsGroups['Slot']
+                elif (urlPartsType == 'Slot'):
+                    urlParts2 = urlPartsGroups['FacilityUse']
+                break
+        if (urlPart1):
+            break
+
+    if (urlPart1):
+        for urlPart2 in urlParts2:
+            feedUrl2 = feedUrl1.replace(urlPart1, urlPart2)
+            if (feedUrl2 in feedUrls):
+                return feedUrl2
+
+    return None
+
+# ----------------------------------------------------------------------------------------------------
+
 if (__name__ == '__main__'):
     application.run()
