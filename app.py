@@ -11,6 +11,7 @@ application = Flask(__name__)
 @application.route('/catalogue-urls')
 def app_get_catalogue_urls():
     return oa.get_catalogue_urls(
+        flatten = str(request.args.get('flatten')).lower() == 'true',
         verbose = str(request.args.get('verbose')).lower() == 'true',
     )
 

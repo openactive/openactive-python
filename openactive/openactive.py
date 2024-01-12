@@ -67,29 +67,32 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1, verbose=False):
 
 # ----------------------------------------------------------------------------------------------------
 
-def get_catalogue_urls(verbose=False):
-    catalogueUrls = []
+def get_catalogue_urls(flatten=False, verbose=False):
+    catalogueUrls = {}
 
     collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
 
     try:
         collectionPage, numTries = try_requests(collectionUrl, verbose=verbose)
         if (all([type(i)==str for i in collectionPage.json()['hasPart']])):
-            catalogueUrls.extend(collectionPage.json()['hasPart'])
+            catalogueUrls[collectionUrl] = collectionPage.json()['hasPart']
         else:
             raise Exception()
     except:
         message = 'Can\'t get collection: {}'.format(collectionUrl)
         set_message(message, 'error')
 
-    return catalogueUrls
+    if (not flatten):
+        return catalogueUrls
+    else:
+        return list(chain.from_iterable(catalogueUrls.values()))
 
 # ----------------------------------------------------------------------------------------------------
 
 def get_dataset_urls(flatten=False, verbose=False):
     datasetUrls = {}
 
-    catalogueUrls = get_catalogue_urls()
+    catalogueUrls = get_catalogue_urls(flatten=True, verbose=verbose)
 
     for catalogueUrl in catalogueUrls:
         try:
@@ -112,7 +115,7 @@ def get_dataset_urls(flatten=False, verbose=False):
 def get_feeds(flatten=False, verbose=False):
     feeds = {}
 
-    datasetUrls = get_dataset_urls(flatten=True)
+    datasetUrls = get_dataset_urls(flatten=True, verbose=verbose)
 
     for datasetUrl in datasetUrls:
         try:
