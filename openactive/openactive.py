@@ -78,10 +78,11 @@ def get_catalogue_urls(flatten=False, verbose=False):
 
     try:
         collectionPage, numTries = try_requests(collectionUrl, verbose=verbose)
-        if (all([type(i)==str for i in collectionPage.json()['hasPart']])):
-            catalogueUrls[collectionUrl] = collectionPage.json()['hasPart']
-        else:
+        if (collectionPage.status_code != 200):
             raise Exception()
+        if (any([type(i)!=str for i in collectionPage.json()['hasPart']])):
+            raise Exception()
+        catalogueUrls[collectionUrl] = collectionPage.json()['hasPart']
     except:
         set_message('Can\'t get collection: {}'.format(collectionUrl), 'error')
 
@@ -103,10 +104,11 @@ def get_dataset_urls(flatten=False, verbose=False):
     for catalogueUrl in catalogueUrls:
         try:
             cataloguePage, numTries = try_requests(catalogueUrl, verbose=verbose)
-            if (all([type(i)==str for i in cataloguePage.json()['dataset']])):
-                datasetUrls[catalogueUrl] = cataloguePage.json()['dataset']
-            else:
+            if (cataloguePage.status_code != 200):
                 raise Exception()
+            if (any([type(i)!=str for i in cataloguePage.json()['dataset']])):
+                raise Exception()
+            datasetUrls[catalogueUrl] = cataloguePage.json()['dataset']
         except:
             set_message('Can\'t get catalogue: {}'.format(catalogueUrl), 'error')
 
@@ -128,10 +130,9 @@ def get_feeds(flatten=False, verbose=False):
     for datasetUrl in datasetUrls:
         try:
             datasetPage, numTries = try_requests(datasetUrl, verbose=verbose)
-            if (datasetPage.status_code == 200):
-                soup = BeautifulSoup(datasetPage.text, 'html.parser')
-            else:
+            if (datasetPage.status_code != 200):
                 raise Exception()
+            soup = BeautifulSoup(datasetPage.text, 'html.parser')
             for script in soup.head.find_all('script'):
                 if (    'type' in script.attrs.keys()
                     and script['type'] == 'application/ld+json'
@@ -219,6 +220,8 @@ def get_opportunities(arg=None, verbose=False):
     try:
         feedUrl = opportunities['nextPage']
         feedPage, numTries = try_requests(feedUrl, verbose=verbose)
+        if (feedPage.status_code != 200):
+            raise Exception()
         for item in feedPage.json()['items']:
             if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
                 if (item['state'] == 'updated'):
