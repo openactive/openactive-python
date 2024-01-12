@@ -2,6 +2,7 @@ import copy
 import json
 import requests
 from bs4 import BeautifulSoup
+from inspect import stack
 from itertools import chain
 from termcolor import colored
 from time import sleep
@@ -10,7 +11,9 @@ from urllib.parse import unquote, urlparse
 # ----------------------------------------------------------------------------------------------------
 
 def set_message(message, messageType=None):
-    if (messageType == 'warning'):
+    if (messageType == 'calling'):
+        print(colored('CALLING: ' + message, 'blue'))
+    elif (messageType == 'warning'):
         print(colored('WARNING: ' + message, 'yellow'))
     elif (messageType == 'error'):
         print(colored('ERROR: ' + message, 'red'))
@@ -44,16 +47,14 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1, verbose=False):
 
     while (True):
         if (numTries == numTriesMax):
-            message = 'Max. tries ({}) reached for: {}'.format(numTriesMax, url)
-            set_message(message, 'warning')
+            set_message('Max. tries ({}) reached for: {}'.format(numTriesMax, url), 'warning')
             break
         elif (numTries > 0):
-            message = 'Retrying ({}/{}): {}'.format(numTries, numTriesMax-1, url)
-            set_message(message, 'warning')
+            set_message('Retrying ({}/{}): {}'.format(numTries, numTriesMax-1, url), 'warning')
             sleep(timeWaitSeconds)
         try:
             if (verbose):
-                print(url)
+                set_message(url, 'calling')
             numTries += 1
             r = session.get(url)
             if (r.status_code == 200):
@@ -72,6 +73,9 @@ def get_catalogue_urls(flatten=False, verbose=False):
 
     collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
 
+    if (verbose):
+        print(stack()[0].function)
+
     try:
         collectionPage, numTries = try_requests(collectionUrl, verbose=verbose)
         if (all([type(i)==str for i in collectionPage.json()['hasPart']])):
@@ -79,8 +83,7 @@ def get_catalogue_urls(flatten=False, verbose=False):
         else:
             raise Exception()
     except:
-        message = 'Can\'t get collection: {}'.format(collectionUrl)
-        set_message(message, 'error')
+        set_message('Can\'t get collection: {}'.format(collectionUrl), 'error')
 
     if (not flatten):
         return catalogueUrls
@@ -94,6 +97,9 @@ def get_dataset_urls(flatten=False, verbose=False):
 
     catalogueUrls = get_catalogue_urls(flatten=True, verbose=verbose)
 
+    if (verbose):
+        print(stack()[0].function)
+
     for catalogueUrl in catalogueUrls:
         try:
             cataloguePage, numTries = try_requests(catalogueUrl, verbose=verbose)
@@ -102,8 +108,7 @@ def get_dataset_urls(flatten=False, verbose=False):
             else:
                 raise Exception()
         except:
-            message = 'Can\'t get catalogue: {}'.format(catalogueUrl)
-            set_message(message, 'error')
+            set_message('Can\'t get catalogue: {}'.format(catalogueUrl), 'error')
 
     if (not flatten):
         return datasetUrls
@@ -116,6 +121,9 @@ def get_feeds(flatten=False, verbose=False):
     feeds = {}
 
     datasetUrls = get_dataset_urls(flatten=True, verbose=verbose)
+
+    if (verbose):
+        print(stack()[0].function)
 
     for datasetUrl in datasetUrls:
         try:
@@ -167,8 +175,7 @@ def get_feeds(flatten=False, verbose=False):
                                     feeds[datasetUrl] = []
                                 feeds[datasetUrl].append(feedOut)
         except:
-            message = 'Can\'t get dataset: {}'.format(datasetUrl)
-            set_message(message, 'error')
+            set_message('Can\'t get dataset: {}'.format(datasetUrl), 'error')
 
     if (not flatten):
         return feeds
@@ -193,8 +200,7 @@ def get_opportunities(arg=None, verbose=False):
 
     if (type(arg) == str):
         if (len(arg) == 0):
-            message = 'Invalid input, feed URL must be a string of non-zero length'
-            set_message(message, 'warning')
+            set_message('Invalid input, feed URL must be a string of non-zero length', 'warning')
             return
         opportunities = copy.deepcopy(opportunitiesTemplate)
         opportunities['nextPage'] = set_url(arg, opportunities)
@@ -203,13 +209,11 @@ def get_opportunities(arg=None, verbose=False):
             or  type(arg['nextPage'] != str)
             or  len(arg['nextPage']) == 0
         ):
-            message = 'Invalid input, opportunities must be a dictionary with the expected content'
-            set_message(message, 'warning')
+            set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
             return
         opportunities = arg
     else:
-        message = 'Invalid input, must be a feed URL string or an opportunities dictionary'
-        set_message(message, 'warning')
+        set_message('Invalid input, must be a feed URL string or an opportunities dictionary', 'warning')
         return
 
     try:
@@ -231,8 +235,7 @@ def get_opportunities(arg=None, verbose=False):
             opportunities['urls'].append(feedUrl)
             opportunities = get_opportunities(opportunities)
     except:
-        message = 'Can\'t get feed: {}'.format(feedUrl)
-        set_message(message, 'error')
+        set_message('Can\'t get feed: {}'.format(feedUrl), 'error')
 
     return opportunities
 
