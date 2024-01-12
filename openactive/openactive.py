@@ -335,7 +335,10 @@ urlPartsGroups = {
     ],
 }
 def get_partner_url(feedUrl1, feedUrls):
+    feedUrl2 = None
+
     urlPart1 = None
+    urlParts2 = None
 
     for urlPartsType,urlParts in urlPartsGroups.items():
         for urlPart in urlParts:
@@ -353,10 +356,11 @@ def get_partner_url(feedUrl1, feedUrls):
         if (urlPart1):
             break
 
-    if (urlPart1):
+    if (urlPart1 and urlParts2):
         for urlPart2 in urlParts2:
-            feedUrl2 = feedUrl1.replace(urlPart1, urlPart2)
-            if (feedUrl2 in feedUrls):
-                return feedUrl2
+            feedUrl2Attempt = feedUrl1.replace(urlPart1, urlPart2)
+            if (feedUrl2Attempt in feedUrls):
+                feedUrl2 = feedUrl2Attempt
+                break
 
-    return None
+    return feedUrl2
