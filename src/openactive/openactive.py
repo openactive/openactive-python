@@ -68,7 +68,7 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1, verbose=False):
 
 # ----------------------------------------------------------------------------------------------------
 
-def get_catalogue_urls(flatten=False, verbose=False):
+def get_catalogue_urls(flat=False, verbose=False):
     catalogueUrls = {}
 
     collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
@@ -86,17 +86,17 @@ def get_catalogue_urls(flatten=False, verbose=False):
     except:
         set_message('Can\'t get collection: {}'.format(collectionUrl), 'error')
 
-    if (not flatten):
+    if (not flat):
         return catalogueUrls
     else:
         return list(chain.from_iterable(catalogueUrls.values()))
 
 # ----------------------------------------------------------------------------------------------------
 
-def get_dataset_urls(flatten=False, verbose=False):
+def get_dataset_urls(flat=False, verbose=False):
     datasetUrls = {}
 
-    catalogueUrls = get_catalogue_urls(flatten=True, verbose=verbose)
+    catalogueUrls = get_catalogue_urls(flat=True, verbose=verbose)
 
     if (verbose):
         print(stack()[0].function)
@@ -112,17 +112,17 @@ def get_dataset_urls(flatten=False, verbose=False):
         except:
             set_message('Can\'t get catalogue: {}'.format(catalogueUrl), 'error')
 
-    if (not flatten):
+    if (not flat):
         return datasetUrls
     else:
         return list(chain.from_iterable(datasetUrls.values()))
 
 # ----------------------------------------------------------------------------------------------------
 
-def get_feeds(flatten=False, verbose=False):
+def get_feeds(flat=False, verbose=False):
     feeds = {}
 
-    datasetUrls = get_dataset_urls(flatten=True, verbose=verbose)
+    datasetUrls = get_dataset_urls(flat=True, verbose=verbose)
 
     if (verbose):
         print(stack()[0].function)
@@ -178,7 +178,7 @@ def get_feeds(flatten=False, verbose=False):
         except:
             set_message('Can\'t get dataset: {}'.format(datasetUrl), 'error')
 
-    if (not flatten):
+    if (not flat):
         return feeds
     else:
         return list(chain.from_iterable(feeds.values()))
