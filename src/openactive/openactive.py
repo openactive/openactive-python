@@ -207,7 +207,7 @@ def get_opportunities(arg=None, verbose=False):
         opportunities['nextPage'] = set_url(arg, opportunities)
     elif (type(arg) == dict):
         if (    sorted(arg.keys()) != sorted(opportunitiesTemplate.keys())
-            or  type(arg['nextPage'] != str)
+            or  type(arg['nextPage']) != str
             or  len(arg['nextPage']) == 0
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
