@@ -2,11 +2,11 @@
 
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://opensource.org/license/mit/)
 
-This is a package for reading feeds of activity data published in the OpenActive format.
+This is a Python package for reading feeds of sports and activity data published in the OpenActive format.
 
 # Installation
 
-It is recommended to first set up a virtual environment for your OpenActive project, to ensure that it's isolated from your base environment and runs as intended. The only thing that must be installed in your base environment is some package for generating virtual environments, such as `virtualenv`:
+It is recommended to first set up a virtual environment for your `openactive` project, to ensure that it's isolated from your base environment and runs as intended. The only thing that must be installed in your base environment is some package for generating virtual environments, such as `virtualenv`:
 
 ```
 $ pip install virtualenv
@@ -34,9 +34,9 @@ Let's import the `openactive` package under the proxy name `oa` in a Python sess
 >>> import openactive as oa
 ```
 
-In order to effectively use the package, we must first understand the OpenActive data model. OpenActive data is released by a data publisher as a Realtime Paged Data Exchange (RPDE) feed. There can be multiple feeds from a given provider, and in fact we often have complimentary pairs of feeds, such as having one for super-event data (e.g. a series of fitness class sessions) and one for sub-event data (e.g. particular scheduled sessions). In such cases, both feeds must be read in order to get a complete picture, and items in one feed will reference items in the other feed.
+In order to effectively use the package, we must first understand the OpenActive data model. OpenActive data is released by a data publisher as a Realtime Paged Data Exchange (RPDE) feed, which is described in more detail later. There can be multiple feeds from a given publisher, and in fact we often have complimentary pairs of feeds, such as having one for super-event data (e.g. a series of fitness class sessions) and one for sub-event data (e.g. particular scheduled sessions in the series). In such cases, both feeds must be read in order to get a complete picture, and items in one feed will reference items in the other feed. The alternative to this would have been a system that only has one feed for all of this data, with the super-event data copied into every item in the sub-event data, which would be a lot of duplication.
 
-Groups of feeds are bundled together in a dataset, groups of datasets are bundled together in a catalogue, and groups of catalogues are bundled together in a collection. There is only one collection, which is therefore the starting point for everything else. Given a list of feed information, you will not often want to see the exact path by which the feeds were gathered, but there are functions in `openactive` that show the journey from source if needed. So let's just start at the very beginning to be clear on how things work. First, let's define a printer function to give us a clear indented output display for what follows:
+A group of feeds from a data publisher is bundled together in a "dataset", a group of datasets from different data publishers is bundled together in a "catalogue", and a group of catalogues is bundled together in a "collection". There is only one collection, which is therefore the starting point for everything else. Given a list of feed information, you will not often want to see the exact path by which the feeds were gathered, but there are functions in `openactive` that show the journey from the source collection if needed. So let's just start at the very beginning to be clear on how things work in the ecosystem. First, let's define a printer function to give us a clear indented output display for what follows:
 
 ```
 >>> import json
@@ -59,7 +59,7 @@ Now let's get the catalogue URLs in the collection:
 }
 ```
 
-We see that this returns a dictionary with a single key, the collection URL, which has a value of the list of catalogue URLs. This function also has two optional boolean keywords which weren't used above. The first keyword is `flat`, which causes the function to return a flat list structure rather than a dictionary, so losing the collection URL showing the data path. The second keyword is `verbose`, which causes the function to print its name and the URLs that it calls during execution. Let's run the above again with both keywords set to `True`:
+We see that this returns a dictionary with a single key, the collection URL, which has a value that is the list of catalogue URLs. Unless otherwise stated, all data gathering functions have two optional boolean keywords which weren't used above. The first keyword is `flat`, which causes a function to return a flat list structure rather than a dictionary, so losing the key-level information. The second keyword is `verbose`, which causes a function to print its name and the URLs that it calls during execution. Note that, regardless of the `verbose` keyword, warning and error messages are printed as standard, and we typically have such messages when a page to be read is unavailable or not set up correctly. Let's run the above again with both keywords set to `True`:
 
 ```
 >>> catalogue_urls = oa.get_catalogue_urls(flat=True,verbose=True)
@@ -74,7 +74,7 @@ CALLING: https://openactive.io/data-catalogs/data-catalog-collection.jsonld
 ]
 ```
 
-Now for each of these catalogue URLs, let's get the dataset URLs they contain:
+Now for each of these catalogue URLs, let's get the dataset URLs they contain (note that `get_dataset_urls` calls `get_catalogue_urls` internally):
 
 ```
 >>> dataset_urls = oa.get_dataset_urls()
@@ -100,11 +100,12 @@ Now for each of these catalogue URLs, let's get the dataset URLs they contain:
         "https://awesomecic.bookteq.com/api/open-active",
         etc.
     ]
+}
 ```
 
-We again see an output dictionary, with keys that are catalogue URLs and values that are lists of dataset URLs. The above output was manually truncated, and you will see many more dataset URLs if you run the command yourself. If needed, we can again use the `flat` keyword to remove the key-level information and combine the value lists into one, and the `verbose` keyword to show function calls and URL calls.
+We again see an output dictionary, with keys that are catalogue URLs and values that are lists of dataset URLs. The above output display is truncated, and you will see many more dataset URLs if you run the command yourself.
 
-Now for each of these dataset URLs, let's get the feed information they contain:
+Now for each of these dataset URLs, let's get the feed information they contain (note that `get_feeds` calls `get_dataset_urls` internally):
 
 ```
 >>> feeds = oa.get_feeds()
@@ -170,9 +171,9 @@ ERROR: Can't get dataset: https://www.participant.co.uk/participant/openactive/
 }
 ```
 
-Once again we see an output dictionary, with keys that are dataset URLs and values that are lists of feed dictionaries. The above output was manually truncated, and you will see many more feed dictionaries if you run the command yourself. If needed, we can again use the `flat` keyword to remove the key-level information and combine the value lists into one, and the `verbose` keyword to show function calls and URL calls. Note that, regardless of the `verbose` keyword, warning and error messages are printed as standard by all functions, as seen above for the last function call. We typically have such messages when a page is unavailable or not set up correctly.
+Once again we see an output dictionary, with keys that are dataset URLs and values that are lists of feed information dictionaries. The above output display is truncated, and you will see many more feed information dictionaries if you run the command yourself.
 
-The list of feeds is usually where you'll want to start your project work, but it's useful to be aware of the above journey in getting to this point. What we ultimately want is the information served via a given feed URL, which is the starting point for information transferred via Realtime Paged Data Exchange (RPDE). In essence, this is just like what we have returned from a search engine, which breaks results over a number of pages rather than showing them all on a single page. To get all of the information, we must visit each page one-by-one. This is done for us automatically by the next function in the series, so let's take a look at what we get for a given feed URL taken from the previous output:
+The list of feeds is usually where you'll want to start your project work, but it's useful to be aware of the above journey in getting to this point, which internally happens automatically. What we ultimately want is the data served via a given starting feed URL, which is the entry point for data transferred via Realtime Paged Data Exchange (RPDE). In essence, this is just like what we have returned from a search engine, which breaks results over a chain of pages rather than showing them all on a single page. To get all of the data, we must visit each page in the chain one-by-one. This is done for us automatically by the next function in the series, so let's take a look at what we get for a given starting feed URL:
 
 ```
 >>> opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series')
@@ -200,39 +201,84 @@ The list of feeds is usually where you'll want to start your project work, but i
         "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series",
         "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series?afterTimestamp=24571209&afterId=SH5CLPI13300124"
     ],
-    "firstPageOrigin": "https://opendata.leisurecloud.live",
-    "nextPage": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series?afterTimestamp=26002956&afterId=KL2CLPL11001121"
+    "firstUrlOrigin": "https://opendata.leisurecloud.live",
+    "nextUrl": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series?afterTimestamp=26002956&afterId=KL2CLPL11001121"
 }
 ```
 
-The returned output is, once again, a dictionary. The main content of interest is found under the `items` key, which has a dictionary of 'opportunity' items, these being the activity items of this particular feed. The above is greatly truncated, and you will see a lot more if your run the command yourself. This output cannot be flattened via the `flat` keyword, as its structure is essential to maintain. The `verbose` keyword is still applicable, and will again cause the function to print the URLs that it calls. These URLs are in fact also returned in the output, along with base form (the 'origin') of the first page, and the next page to be visited when the feed is updated by the publisher, in order to continue the read at a later time from where we left off. To do this, which can also be done if we encounter an issue when we run the function and only receive output from a partial read of the full set of feed pages, we give the output dictionary to the function as argument rather than a feed URL:
+The returned output is, once again, a dictionary. The main content of interest is found under the `items` key, which has a dictionary of "opportunity" items, these being the activity items for this particular feed, cleaned of those flagged for removal and older duplicates. The above output display is truncated, and you will see many more items if you run the command yourself. This output cannot be flattened via the `flat` keyword, as its structure is essential to maintain, but the `verbose` keyword is still applicable. All URLs that were visited in the feed chain are also returned in the output, as well as the "origin" of the first URL, and the next URL to be visited when the feed is updated by the publisher, in order to continue the read at this point in the feed chain at a later time. To do this, which can also be done if we encounter an issue and only receive output from a partial read of the feed chain, we give the output dictionary to the function as argument rather than the starting feed URL:
 
 ```
->>> opportunities_updated = oa.get_opportunities(opportunities)
+>>> opportunities_new = oa.get_opportunities(opportunities)
 ```
 
-WORK IN PROGRESS
+After obtaining a set of opportunity items, we can scan through all of them and count the various "kind" and "type" values that appear. Usually there is only one version of each of these fields, which are most often the same as each other too. Let's take a look for the opportunities obtained above:
 
 ```
+>>> >>> len(opportunities['items'])
+919
 >>> item_kinds = oa.get_item_kinds(opportunities)
+>>> printer(item_kinds)
+{
+    "SessionSeries": 919
+}
 >>> item_data_types = oa.get_item_data_types(opportunities)
->>> partner_url = oa.get_partner_url('some feed URL', ['list of feed URLs to search for partner URL'])
+>>> printer(item_data_types)
+{
+    "SessionSeries": 919
+}
 ```
+
+We see that, in this case, all 919 items have a kind and a type of `SessionSeries`. So it's safe to say that this is a pure feed of one of the OpenActive data variants, and we can treat it as such in further analysis.
+
+Finally, as mentioned above there are many cases in which a data publisher releases paired feeds in a dataset, one for super-event data and one for sub-event data. To help automate workflows, there is one more function in the `openactive` package that takes a single starting feed URL to find a partner for, and a list of starting feed URLs in which there may be a partner. It's a simple search-and-replace function using typical URL parts and their variants, such as swapping `session-series` or `sessionseries` for `scheduled-sessions` or `scheduledsessions`, until a match is found. If no match is found, then `None` is returned instead. Using the starting feed URL that we used to get the above `opportunities` dictionary, and the list of all starting feed URLs from the associated dataset in the `feeds` dictionary, we have:
+
+```
+>>> feed_url_1 = 'https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series'
+>>> feed_url_2_options = [feed['url'] for feed in feeds['https://activeleeds-oa.leisurecloud.net/OpenActive/']]
+>>> feed_url_2 = oa.get_partner_url(feed_url_1, feed_url_2_options)
+>>> feed_url_2
+'https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions'
+```
+
+As expected, for the super-event data (session series) we have a partner URL of sub-event data (scheduled sessions). We can now read in the data from the latter feed via `oa.get_opportunities`, and explore the two sets of mutually supportive data together.
 
 The following table summarises the inputs and outputs of all functions described above:
 
-Function             |Input|Keywords|Output
-:---                 |:--- |:---    |:---
+Function             |Arguments|Keywords|Output (not using `flat`)
+:---                 |:---     |:---    |:---
 `get_catalogue_urls` |-|bool:`flat`<br>bool:`verbose`|dict: catalogue URLs in the collection
 `get_dataset_urls`   |-|bool:`flat`<br>bool:`verbose`|dict: dataset URLs for each catalogue
 `get_feeds`          |-|bool:`flat`<br>bool:`verbose`|dict: feed info for each dataset
-`get_opportunities`  |str: feed URL<br>or<br>dict: opportunities|bool:`verbose`|dict: opportunity info for a given feed
-`get_item_kinds`     |dict: opportunities|-|dict: Item kinds for a given set of opportunities
-`get_item_data_types`|dict: opportunities|-|dict: Item data types for a given set of opportunities
-`get_partner_url`    |str: feed URL1<br>[str]: feed URL2 options|-|str: feed URL2 that best partners with feed URL1
+`get_opportunities`  |str: `feed_url`<br>or<br>dict: `opportunities`|bool:`verbose`|dict: `opportunities` info for a given `feed_url`
+`get_item_kinds`     |dict: `opportunities`|-|dict: Item kinds and counts for a given set of `opportunities`
+`get_item_data_types`|dict: `opportunities`|-|dict: Item data types and counts for a given set of `opportunities`
+`get_partner_url`    |str: `feed_url_1`<br>and<br>[str]: [`feed_url_2_options`]|-|str: `feed_url_2` that best partners with `feed_url_1`
 
-# Links
+# References
 
+The main locations:
 - [Initiative homepage](https://openactive.io/)
 - [Developer homepage](https://developer.openactive.io/)
 - [GitHub](https://github.com/openactive)
+
+The complete set of OpenActive specifications:
+- [Realtime Paged Data Exchange (RPDE) data transfer protocol](https://openactive.io/realtime-paged-data-exchange/EditorsDraft/)
+- [Opportunity data primer](https://openactive.io/opportunity-data-primer/)
+- [Opportunity data model](https://openactive.io/modelling-opportunity-data/EditorsDraft/)
+- [Dataset model](https://openactive.io/dataset-api-discovery/EditorsDraft/)
+- [Route model](https://openactive.io/route-guide/EditorsDraft/)
+- [Booking system model](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/)
+
+Tools:
+- [Feed status](https://status.openactive.io/)
+- [Data visualiser](https://visualiser.openactive.io/) - for those simply curious about the data and for data publishers checking the quality of their feeds
+- [Data validator](https://validator.openactive.io/) - a more involved tool for drilling into feed details and checking content
+
+Community and communications:
+- [W3C](https://w3c.openactive.io/)
+- [Slack](https://slack.openactive.io/)
+- [LinkedIn](https://www.linkedin.com/company/openactiveio/)
+- [Twitter](https://twitter.com/openactiveio)
+- [YouTube](https://www.youtube.com/@openactive)
+- [Medium](https://openactiveio.medium.com/)
