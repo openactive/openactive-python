@@ -215,7 +215,7 @@ The returned output is, once again, a dictionary. The main content of interest i
 After obtaining a set of opportunity items, we can scan through all of them and count the various "kind" and "type" values that appear. Usually there is only one version of each of these fields, which are most often the same as each other too. Let's take a look for the opportunities obtained above:
 
 ```
->>> >>> len(opportunities['items'])
+>>> len(opportunities['items'])
 919
 >>> item_kinds = oa.get_item_kinds(opportunities)
 >>> printer(item_kinds)
