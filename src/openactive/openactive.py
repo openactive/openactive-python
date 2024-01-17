@@ -194,8 +194,8 @@ def get_feeds(flat=False, verbose=False):
 opportunitiesTemplate = {
     'items': {},
     'urls': [],
-    'firstPageOrigin': '',
-    'nextPage': '',
+    'firstUrlOrigin': '',
+    'nextUrl': '',
 }
 def get_opportunities(arg=None, verbose=False):
 
@@ -204,11 +204,11 @@ def get_opportunities(arg=None, verbose=False):
             set_message('Invalid input, feed URL must be a string of non-zero length', 'warning')
             return
         opportunities = copy.deepcopy(opportunitiesTemplate)
-        opportunities['nextPage'] = set_url(arg, opportunities)
+        opportunities['nextUrl'] = set_url(arg, opportunities)
     elif (type(arg) == dict):
         if (    sorted(arg.keys()) != sorted(opportunitiesTemplate.keys())
-            or  type(arg['nextPage']) != str
-            or  len(arg['nextPage']) == 0
+            or  type(arg['nextUrl']) != str
+            or  len(arg['nextUrl']) == 0
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
             return
@@ -218,7 +218,7 @@ def get_opportunities(arg=None, verbose=False):
         return
 
     try:
-        feedUrl = opportunities['nextPage']
+        feedUrl = opportunities['nextUrl']
         feedPage, numTries = try_requests(feedUrl, verbose=verbose)
         if (feedPage.status_code != 200):
             raise Exception()
@@ -233,8 +233,8 @@ def get_opportunities(arg=None, verbose=False):
                     and item['id'] in opportunities['items'].keys()
                 ):
                     del(opportunities['items'][item['id']])
-        opportunities['nextPage'] = set_url(feedPage.json()['next'], opportunities)
-        if (opportunities['nextPage'] != feedUrl):
+        opportunities['nextUrl'] = set_url(feedPage.json()['next'], opportunities)
+        if (opportunities['nextUrl'] != feedUrl):
             opportunities['urls'].append(feedUrl)
             opportunities = get_opportunities(opportunities)
     except:
@@ -254,12 +254,12 @@ def set_url(urlOriginal, opportunities):
         and urlParsed.netloc != ''
     ):
         if (len(opportunities['urls']) == 0):
-            opportunities['firstPageOrigin'] = '://'.join([urlParsed.scheme, urlParsed.netloc])
+            opportunities['firstUrlOrigin'] = '://'.join([urlParsed.scheme, urlParsed.netloc])
         url = urlUnquoted
     elif (  urlParsed.path != ''
         or  urlParsed.query != ''
     ):
-        url = opportunities['firstPageOrigin']
+        url = opportunities['firstUrlOrigin']
         if (urlParsed.path != ''):
             url += ('/' if urlParsed.path[0] != '/' else '') + urlParsed.path
         if (urlParsed.query != ''):
