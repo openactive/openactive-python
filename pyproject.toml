@@ -6,19 +6,19 @@ build-backend = 'setuptools.build_meta'
 name = 'openactive'
 version = '1.0.0'
 authors = [
- 	{ name='Darren Temple', email='hello@openactive.io' },
+  { name='Darren Temple', email='hello@openactive.io' },
 ]
 # maintainers = [
-# 	{ name='Maintainer', email='maintainer@example.com' },
+#   { name='Maintainer', email='maintainer@example.com' },
 # ]
 license = { file='LICENSE' }
 readme = 'README.md'
 description = 'For reading feeds of activity data published in the OpenActive format'
 keywords = ['sport', 'sports', 'activity', 'activities']
 classifiers = [
-	'Programming Language :: Python :: 3',
-	'License :: OSI Approved :: MIT License',
-	'Operating System :: OS Independent',
+  'Programming Language :: Python :: 3',
+  'License :: OSI Approved :: MIT License',
+  'Operating System :: OS Independent',
 ]
 requires-python = '>=3.6'
 dependencies = [
