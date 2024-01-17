@@ -13,7 +13,7 @@ authors = [
 # ]
 license = { file='LICENSE' }
 readme = 'README.md'
-description = 'For reading feeds of activity data published in the OpenActive format'
+description = 'For reading feeds of sports and activity data published in the OpenActive format'
 keywords = ['sport', 'sports', 'activity', 'activities']
 classifiers = [
   'Programming Language :: Python :: 3',
