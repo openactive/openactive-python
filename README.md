@@ -20,15 +20,21 @@ $ source virt/bin/activate
 (virt) $
 ```
 
-Now install the `openactive` package, and you're good to go:
+Now install the `openactive` package in the virtual environment, and you're good to go:
 
 ```
 (virt) $ pip install openactive
 ```
 
+When you're done working in the virtual environment, deactivate it by:
+
+```
+(virt) $ deactivate
+```
+
 # Usage
 
-Let's import the `openactive` package under the proxy name `oa` in a Python session:
+In a Python session running in an environment with the `openactive` package installed, let's import the package under the proxy name `oa`:
 
 ```
 >>> import openactive as oa
@@ -44,7 +50,7 @@ A group of feeds from a data publisher is bundled together in a "dataset", a gro
 ...     print(json.dumps(arg,indent=4))
 ```
 
-Now let's get the catalogue URLs in the collection:
+Now let's get the catalogue URLs in the collection, which should take about a second:
 
 ```
 >>> catalogue_urls = oa.get_catalogue_urls()
@@ -74,7 +80,7 @@ CALLING: https://openactive.io/data-catalogs/data-catalog-collection.jsonld
 ]
 ```
 
-Now for each of these catalogue URLs, let's get the dataset URLs they contain (note that `get_dataset_urls` calls `get_catalogue_urls` internally):
+Now for each of these catalogue URLs let's get the dataset URLs they contain, which should take a few seconds (note that `get_dataset_urls` calls `get_catalogue_urls` internally):
 
 ```
 >>> dataset_urls = oa.get_dataset_urls()
@@ -105,7 +111,7 @@ Now for each of these catalogue URLs, let's get the dataset URLs they contain (n
 
 We again see an output dictionary, with keys that are catalogue URLs and values that are lists of dataset URLs. The above output display is truncated, and you will see many more dataset URLs if you run the command yourself.
 
-Now for each of these dataset URLs, let's get the feed information they contain (note that `get_feeds` calls `get_dataset_urls` internally):
+Now for each of these dataset URLs let's get the feed information they contain, which should take about a minute (note that `get_feeds` calls `get_dataset_urls` internally):
 
 ```
 >>> feeds = oa.get_feeds()
@@ -173,7 +179,7 @@ ERROR: Can't get dataset: https://www.participant.co.uk/participant/openactive/
 
 Once again we see an output dictionary, with keys that are dataset URLs and values that are lists of feed information dictionaries. The above output display is truncated, and you will see many more feed information dictionaries if you run the command yourself.
 
-The list of feeds is usually where you'll want to start your project work, but it's useful to be aware of the above journey in getting to this point, which internally happens automatically. What we ultimately want is the data served via a given starting feed URL, which is the entry point for data transferred via Realtime Paged Data Exchange (RPDE). In essence, this is just like what we have returned from a search engine, which breaks results over a chain of pages rather than showing them all on a single page. To get all of the data, we must visit each page in the chain one-by-one. This is done for us automatically by the next function in the series, so let's take a look at what we get for a given starting feed URL:
+The list of feeds is usually where you'll want to start your project work, but it's useful to be aware of the above journey in getting to this point, which internally happens automatically. What we ultimately want is the data served via a given starting feed URL, which is the entry point for data transferred via Realtime Paged Data Exchange (RPDE). In essence, this is just like what we have returned from a search engine, which breaks results over a chain of pages rather than showing them all on a single page. To get all of the data, we must visit each page in the chain one-by-one. This is done for us automatically by the next function in the series, so let's take a look at what we get for a given starting feed URL. Note that the time required for this function to complete can vary greatly depending on the feed being read, from a few seconds to a few minutes, and the `verbose` keyword may be particularly useful here to monitor progress. The feed in this example should only take a few seconds:
 
 ```
 >>> opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series')
@@ -272,7 +278,7 @@ The complete set of OpenActive specifications:
 
 Tools:
 - [Feed status](https://status.openactive.io/)
-- [Data visualiser](https://visualiser.openactive.io/) - for those simply curious about the data and for data publishers checking the quality of their feeds
+- [Data visualiser](https://visualiser.openactive.io/) - for those curious about the data and for data publishers checking their feed quality
 - [Data validator](https://validator.openactive.io/) - a more involved tool for drilling into feed details and checking content
 
 Community and communications:
