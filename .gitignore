@@ -1,7 +1,4 @@
-.ipynb_checkpoints/
 __pycache__/
-instance/
-virt/
+dist/
+src/
 .DS_Store
-.env
-*.pyc

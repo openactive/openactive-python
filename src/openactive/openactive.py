@@ -41,7 +41,11 @@ session = requests.Session()
 # session.mount('https://', adapter)
 # session.mount('http://', adapter)
 
-def try_requests(url, numTriesMax=10, timeWaitSeconds=1, verbose=False):
+def try_requests(url, **kwargs):
+    numTriesMax = kwargs.get('numTriesMax', 10)
+    timeWaitSecondsRetry = kwargs.get('timeWaitSecondsRetry', 1)
+    verbose = kwargs.get('verbose', False)
+
     r = None
     numTries = 0
 
@@ -51,7 +55,7 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1, verbose=False):
             break
         elif (numTries > 0):
             set_message('Retrying ({}/{}): {}'.format(numTries, numTriesMax-1, url), 'warning')
-            sleep(timeWaitSeconds)
+            sleep(timeWaitSecondsRetry)
         try:
             if (verbose):
                 set_message(url, 'calling')
@@ -68,7 +72,10 @@ def try_requests(url, numTriesMax=10, timeWaitSeconds=1, verbose=False):
 
 # ----------------------------------------------------------------------------------------------------
 
-def get_catalogue_urls(flat=False, verbose=False):
+def get_catalogue_urls(**kwargs):
+    flat = kwargs.get('flat', False)
+    verbose = kwargs.get('verbose', False)
+
     catalogueUrls = {}
 
     collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
@@ -77,7 +84,7 @@ def get_catalogue_urls(flat=False, verbose=False):
         print(stack()[0].function)
 
     try:
-        collectionPage, numTries = try_requests(collectionUrl, verbose=verbose)
+        collectionPage, numTries = try_requests(collectionUrl, **kwargs)
         if (collectionPage.status_code != 200):
             raise Exception()
         if (any([type(i)!=str for i in collectionPage.json()['hasPart']])):
@@ -93,17 +100,23 @@ def get_catalogue_urls(flat=False, verbose=False):
 
 # ----------------------------------------------------------------------------------------------------
 
-def get_dataset_urls(flat=False, verbose=False):
+def get_dataset_urls(**kwargs):
+    timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
+    flat = kwargs.get('flat', False)
+    verbose = kwargs.get('verbose', False)
+
     datasetUrls = {}
 
-    catalogueUrls = get_catalogue_urls(flat=True, verbose=verbose)
+    catalogueUrls = get_catalogue_urls(**{**kwargs, **{'flat': True}})
 
     if (verbose):
         print(stack()[0].function)
 
-    for catalogueUrl in catalogueUrls:
+    for catalogueUrlIdx,catalogueUrl in enumerate(catalogueUrls):
         try:
-            cataloguePage, numTries = try_requests(catalogueUrl, verbose=verbose)
+            if (catalogueUrlIdx != 0):
+                sleep(timeWaitSeconds)
+            cataloguePage, numTries = try_requests(catalogueUrl, **kwargs)
             if (cataloguePage.status_code != 200):
                 raise Exception()
             if (any([type(i)!=str for i in cataloguePage.json()['dataset']])):
@@ -119,17 +132,23 @@ def get_dataset_urls(flat=False, verbose=False):
 
 # ----------------------------------------------------------------------------------------------------
 
-def get_feeds(flat=False, verbose=False):
+def get_feeds(**kwargs):
+    timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
+    flat = kwargs.get('flat', False)
+    verbose = kwargs.get('verbose', False)
+
     feeds = {}
 
-    datasetUrls = get_dataset_urls(flat=True, verbose=verbose)
+    datasetUrls = get_dataset_urls(**{**kwargs, **{'flat': True}})
 
     if (verbose):
         print(stack()[0].function)
 
-    for datasetUrl in datasetUrls:
+    for datasetUrlIdx,datasetUrl in enumerate(datasetUrls):
         try:
-            datasetPage, numTries = try_requests(datasetUrl, verbose=verbose)
+            if (datasetUrlIdx != 0):
+                sleep(timeWaitSeconds)
+            datasetPage, numTries = try_requests(datasetUrl, **kwargs)
             if (datasetPage.status_code != 200):
                 raise Exception()
             soup = BeautifulSoup(datasetPage.text, 'html.parser')
@@ -197,7 +216,14 @@ opportunitiesTemplate = {
     'firstUrlOrigin': '',
     'nextUrl': '',
 }
-def get_opportunities(arg=None, verbose=False):
+def get_opportunities(arg, **kwargs):
+    timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
+    verbose = kwargs.get('verbose', False)
+
+    if (    (verbose)
+        and (stack()[0].function != stack()[1].function)
+    ):
+        print(stack()[0].function)
 
     if (type(arg) == str):
         if (len(arg) == 0):
@@ -219,7 +245,7 @@ def get_opportunities(arg=None, verbose=False):
 
     try:
         feedUrl = opportunities['nextUrl']
-        feedPage, numTries = try_requests(feedUrl, verbose=verbose)
+        feedPage, numTries = try_requests(feedUrl, **kwargs)
         if (feedPage.status_code != 200):
             raise Exception()
         for item in feedPage.json()['items']:
@@ -236,7 +262,8 @@ def get_opportunities(arg=None, verbose=False):
         opportunities['nextUrl'] = set_url(feedPage.json()['next'], opportunities)
         if (opportunities['nextUrl'] != feedUrl):
             opportunities['urls'].append(feedUrl)
-            opportunities = get_opportunities(opportunities)
+            sleep(timeWaitSeconds)
+            opportunities = get_opportunities(opportunities, **kwargs)
     except:
         set_message('Can\'t get feed: {}'.format(feedUrl), 'error')
 
