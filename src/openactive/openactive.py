@@ -8,7 +8,7 @@ from termcolor import colored
 from time import sleep
 from urllib.parse import unquote, urlparse
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def set_message(message, messageType=None):
     if (messageType == 'calling'):
@@ -20,7 +20,7 @@ def set_message(message, messageType=None):
     else:
         print(message)
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 session = requests.Session()
 
@@ -70,7 +70,7 @@ def try_requests(url, **kwargs):
 
     return r, numTries
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_catalogue_urls(**kwargs):
     flat = kwargs.get('flat', False)
@@ -98,7 +98,7 @@ def get_catalogue_urls(**kwargs):
     else:
         return list(chain.from_iterable(catalogueUrls.values()))
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_dataset_urls(**kwargs):
     timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
@@ -130,7 +130,7 @@ def get_dataset_urls(**kwargs):
     else:
         return list(chain.from_iterable(datasetUrls.values()))
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_feeds(**kwargs):
     timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
@@ -202,7 +202,7 @@ def get_feeds(**kwargs):
     else:
         return list(chain.from_iterable(feeds.values()))
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 # This is a recursive function. On the first call the opportunities dictionary will be empty and so
 # will be initialised. On subsequent automated internal calls it will have content to be added to.
@@ -269,7 +269,7 @@ def get_opportunities(arg, **kwargs):
 
     return opportunities
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def set_url(urlOriginal, opportunities):
     url = ''
@@ -294,7 +294,7 @@ def set_url(urlOriginal, opportunities):
 
     return url
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_item_kinds(opportunities):
     itemKinds = {}
@@ -308,7 +308,7 @@ def get_item_kinds(opportunities):
 
     return itemKinds
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_item_data_types(opportunities):
     itemDataTypes = {}
@@ -325,7 +325,7 @@ def get_item_data_types(opportunities):
 
     return itemDataTypes
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 urlPartsGroups = {
     'SessionSeries': [
@@ -380,84 +380,88 @@ def get_partner_url(url1, urls):
                     if (url2Attempt in urls):
                         url2 = url2Attempt
                         break
-            if (url2):
+            if (url2 is not None):
                 break
-        if (url2):
+        if (url2 is not None):
             break
 
     return url2
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_superevent_id_in_subevent(subevent):
     supereventIdInSubevent = None
 
-    if (subevent.get('data')):
-        if (    (subevent['data'].get('superEvent'))
+    if (subevent.get('data') is not None):
+        if (    (subevent['data'].get('superEvent') is not None)
             and (type(subevent['data']['superEvent']) in [str, int])
         ):
             supereventIdInSubevent = str(subevent['data']['superEvent']).split('/')[-1]
-        elif (  (subevent['data'].get('facilityUse'))
+        elif (  (subevent['data'].get('facilityUse') is not None)
             and (type(subevent['data']['facilityUse']) in [str, int])
         ):
             supereventIdInSubevent = str(subevent['data']['facilityUse']).split('/')[-1]
 
     return supereventIdInSubevent
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_superevent_ids(superevent):
     supereventId = None
     supereventDataId = None
 
-    if (    (superevent.get('id'))
-        and (type(superevent.get('id')) in [str, int])
+    if (    (superevent.get('id') is not None)
+        and (type(superevent['id']) in [str, int])
     ):
         supereventId = str(superevent['id']).split('/')[-1]
 
-    if (superevent.get('data')):
-        if (    (superevent['data'].get('id'))
+    if (superevent.get('data') is not None):
+        if (    (superevent['data'].get('id') is not None)
             and (type(superevent['data']['id']) in [str, int])
         ):
             supereventDataId = str(superevent['data']['id']).split('/')[-1]
-        elif (  (superevent['data'].get('@id'))
+        elif (  (superevent['data'].get('@id') is not None)
             and (type(superevent['data']['@id']) in [str, int])
         ):
             supereventDataId = str(superevent['data']['@id']).split('/')[-1]
 
     return supereventId, supereventDataId
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_superevents(subevent, supereventOpportunities):
     superevents = []
 
     supereventIdInSubevent = get_superevent_id_in_subevent(subevent)
 
-    if (supereventIdInSubevent):
+    if (supereventIdInSubevent is not None):
         for superevent in supereventOpportunities['items'].values():
             supereventId, supereventDataId = get_superevent_ids(superevent)
-            if (   ((supereventId) and (supereventId == supereventIdInSubevent))
-                or ((supereventDataId) and (supereventDataId == supereventIdInSubevent))
+            if (   (    (supereventId is not None)
+                    and (supereventId == supereventIdInSubevent) )
+                or (    (supereventDataId is not None)
+                    and (supereventDataId == supereventIdInSubevent) )
             ):
                 superevents.append(superevent)
 
     return superevents
 
-# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
 
 def get_subevents(superevent, subeventOpportunities):
     subevents = []
 
     supereventId, supereventDataId = get_superevent_ids(superevent)
 
-    if (    (supereventId)
-        or  (supereventDataId)
+    if (    (supereventId is not None)
+        or  (supereventDataId is not None)
     ):
         for subevent in subeventOpportunities['items'].values():
             supereventIdInSubevent = get_superevent_id_in_subevent(subevent)
-            if (   ((supereventId) and (supereventId == supereventIdInSubevent))
-                or ((supereventDataId) and (supereventDataId == supereventIdInSubevent))
+            if (   (    (supereventId is not None)
+                    and (supereventId == supereventIdInSubevent) )
+                or (    (supereventDataId is not None)
+                    and (supereventDataId == supereventIdInSubevent) )
             ):
                 subevents.append(subevent)
 
