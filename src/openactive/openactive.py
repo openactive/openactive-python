@@ -153,8 +153,8 @@ def get_feeds(**kwargs):
                 raise Exception()
             soup = BeautifulSoup(datasetPage.text, 'html.parser')
             for script in soup.head.find_all('script'):
-                if (    'type' in script.attrs.keys()
-                    and script['type'] == 'application/ld+json'
+                if (    ('type' in script.attrs.keys())
+                    and (script['type'] == 'application/ld+json')
                 ):
                     jsonld = json.loads(script.string)
                     if ('distribution' in jsonld.keys()):
@@ -232,9 +232,9 @@ def get_opportunities(arg, **kwargs):
         opportunities = copy.deepcopy(opportunitiesTemplate)
         opportunities['nextUrl'] = set_url(arg, opportunities)
     elif (type(arg) == dict):
-        if (    sorted(arg.keys()) != sorted(opportunitiesTemplate.keys())
-            or  type(arg['nextUrl']) != str
-            or  len(arg['nextUrl']) == 0
+        if (    (sorted(arg.keys()) != sorted(opportunitiesTemplate.keys()))
+            or  (type(arg['nextUrl']) != str)
+            or  (len(arg['nextUrl']) == 0)
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
             return
@@ -251,12 +251,12 @@ def get_opportunities(arg, **kwargs):
         for item in feedPage.json()['items']:
             if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
                 if (item['state'] == 'updated'):
-                    if (    item['id'] not in opportunities['items'].keys()
-                        or  item['modified'] > opportunities['items'][item['id']]['modified']
+                    if (    (item['id'] not in opportunities['items'].keys())
+                        or  (item['modified'] > opportunities['items'][item['id']]['modified'])
                     ):
                         opportunities['items'][item['id']] = item
-                elif (  item['state'] == 'deleted'
-                    and item['id'] in opportunities['items'].keys()
+                elif (  (item['state'] == 'deleted')
+                    and (item['id'] in opportunities['items'].keys())
                 ):
                     del(opportunities['items'][item['id']])
         opportunities['nextUrl'] = set_url(feedPage.json()['next'], opportunities)
@@ -277,20 +277,20 @@ def set_url(urlOriginal, opportunities):
     urlUnquoted = unquote(urlOriginal)
     urlParsed = urlparse(urlUnquoted)
 
-    if (    urlParsed.scheme != ''
-        and urlParsed.netloc != ''
+    if (    (urlParsed.scheme != '')
+        and (urlParsed.netloc != '')
     ):
         if (len(opportunities['urls']) == 0):
             opportunities['firstUrlOrigin'] = '://'.join([urlParsed.scheme, urlParsed.netloc])
         url = urlUnquoted
-    elif (  urlParsed.path != ''
-        or  urlParsed.query != ''
+    elif (  (urlParsed.path != '')
+        or  (urlParsed.query != '')
     ):
         url = opportunities['firstUrlOrigin']
         if (urlParsed.path != ''):
-            url += ('/' if urlParsed.path[0] != '/' else '') + urlParsed.path
+            url += ('/' if (urlParsed.path[0] != '/') else '') + urlParsed.path
         if (urlParsed.query != ''):
-            url += ('?' if urlParsed.query[0] != '?' else '') + urlParsed.query
+            url += ('?' if (urlParsed.query[0] != '?') else '') + urlParsed.query
 
     return url
 
