@@ -10,12 +10,12 @@ from urllib.parse import unquote, urlparse
 
 # --------------------------------------------------------------------------------------------------
 
-def set_message(message, messageType=None):
-    if (messageType == 'calling'):
+def set_message(message, message_type=None):
+    if (message_type == 'calling'):
         print(colored('CALLING: ' + message, 'blue'))
-    elif (messageType == 'warning'):
+    elif (message_type == 'warning'):
         print(colored('WARNING: ' + message, 'yellow'))
-    elif (messageType == 'error'):
+    elif (message_type == 'error'):
         print(colored('ERROR: ' + message, 'red'))
     else:
         print(message)
