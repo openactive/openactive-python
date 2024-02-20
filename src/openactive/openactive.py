@@ -386,3 +386,79 @@ def get_partner_url(url1, urls):
             break
 
     return url2
+
+# ----------------------------------------------------------------------------------------------------
+
+def get_superevent_id_in_subevent(subevent):
+    supereventIdInSubevent = None
+
+    if (subevent.get('data')):
+        if (    (subevent['data'].get('superEvent'))
+            and (type(subevent['data']['superEvent']) in [str, int])
+        ):
+            supereventIdInSubevent = str(subevent['data']['superEvent']).split('/')[-1]
+        elif (  (subevent['data'].get('facilityUse'))
+            and (type(subevent['data']['facilityUse']) in [str, int])
+        ):
+            supereventIdInSubevent = str(subevent['data']['facilityUse']).split('/')[-1]
+
+    return supereventIdInSubevent
+
+# ----------------------------------------------------------------------------------------------------
+
+def get_superevent_ids(superevent):
+    supereventId = None
+    supereventDataId = None
+
+    if (    (superevent.get('id'))
+        and (type(superevent.get('id')) in [str, int])
+    ):
+        supereventId = str(superevent['id']).split('/')[-1]
+
+    if (superevent.get('data')):
+        if (    (superevent['data'].get('id'))
+            and (type(superevent['data']['id']) in [str, int])
+        ):
+            supereventDataId = str(superevent['data']['id']).split('/')[-1]
+        elif (  (superevent['data'].get('@id'))
+            and (type(superevent['data']['@id']) in [str, int])
+        ):
+            supereventDataId = str(superevent['data']['@id']).split('/')[-1]
+
+    return supereventId, supereventDataId
+
+# ----------------------------------------------------------------------------------------------------
+
+def get_superevents(subevent, supereventOpportunities):
+    superevents = []
+
+    supereventIdInSubevent = get_superevent_id_in_subevent(subevent)
+
+    if (supereventIdInSubevent):
+        for superevent in supereventOpportunities['items'].values():
+            supereventId, supereventDataId = get_superevent_ids(superevent)
+            if (   ((supereventId) and (supereventId == supereventIdInSubevent))
+                or ((supereventDataId) and (supereventDataId == supereventIdInSubevent))
+            ):
+                superevents.append(superevent)
+
+    return superevents
+
+# ----------------------------------------------------------------------------------------------------
+
+def get_subevents(superevent, subeventOpportunities):
+    subevents = []
+
+    supereventId, supereventDataId = get_superevent_ids(superevent)
+
+    if (    (supereventId)
+        or  (supereventDataId)
+    ):
+        for subevent in subeventOpportunities['items'].values():
+            supereventIdInSubevent = get_superevent_id_in_subevent(subevent)
+            if (   ((supereventId) and (supereventId == supereventIdInSubevent))
+                or ((supereventDataId) and (supereventDataId == supereventIdInSubevent))
+            ):
+                subevents.append(subevent)
+
+    return subevents
