@@ -353,41 +353,36 @@ urlPartsGroups = {
       'facilityuse',
     ],
     'Slot': [
-      'slots',
-      'slot',
-      'facility-use-slots',
-      'facility-use-slot',
       'facility-uses/events',
       'facility-uses/event',
+      'facility-use-slots',
+      'facility-use-slot',
+      'slots',
+      'slot',
     ],
 }
-def get_partner_url(feedUrl1, feedUrls):
-    feedUrl2 = None
+urlPartsTypeMap = {
+    'SessionSeries': 'ScheduledSession',
+    'ScheduledSession': 'SessionSeries',
+    'FacilityUse': 'Slot',
+    'Slot': 'FacilityUse',
+}
+def get_partner_url(url1, urls):
+    url2 = None
 
-    urlPart1 = None
-    urlParts2 = None
-
-    for urlPartsType,urlParts in urlPartsGroups.items():
-        for urlPart in urlParts:
-            if (urlPart in feedUrl1):
-                urlPart1 = urlPart
-                if (urlPartsType == 'SessionSeries'):
-                    urlParts2 = urlPartsGroups['ScheduledSession']
-                elif (urlPartsType == 'ScheduledSession'):
-                    urlParts2 = urlPartsGroups['SessionSeries']
-                elif (urlPartsType == 'FacilityUse'):
-                    urlParts2 = urlPartsGroups['Slot']
-                elif (urlPartsType == 'Slot'):
-                    urlParts2 = urlPartsGroups['FacilityUse']
+    for url1PartsType,url1Parts in urlPartsGroups.items():
+        for url1Part in url1Parts:
+            if (url1Part in url1):
+                url2PartsType = urlPartsTypeMap[url1PartsType]
+                url2Parts = urlPartsGroups[url2PartsType]
+                for url2Part in url2Parts:
+                    url2Attempt = url1.replace(url1Part, url2Part)
+                    if (url2Attempt in urls):
+                        url2 = url2Attempt
+                        break
+            if (url2):
                 break
-        if (urlPart1):
+        if (url2):
             break
 
-    if (urlPart1 and urlParts2):
-        for urlPart2 in urlParts2:
-            feedUrl2Attempt = feedUrl1.replace(urlPart1, urlPart2)
-            if (feedUrl2Attempt in feedUrls):
-                feedUrl2 = feedUrl2Attempt
-                break
-
-    return feedUrl2
+    return url2
