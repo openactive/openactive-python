@@ -42,24 +42,24 @@ session = requests.Session()
 # session.mount('http://', adapter)
 
 def try_requests(url, **kwargs):
-    numTriesMax = kwargs.get('numTriesMax', 10)
-    timeWaitSecondsRetry = kwargs.get('timeWaitSecondsRetry', 1)
+    num_tries_max = kwargs.get('num_tries_max', 10)
+    time_wait_seconds_retry = kwargs.get('time_wait_seconds_retry', 1)
     verbose = kwargs.get('verbose', False)
 
     r = None
-    numTries = 0
+    num_tries = 0
 
     while (True):
-        if (numTries == numTriesMax):
-            set_message('Max. tries ({}) reached for: {}'.format(numTriesMax, url), 'warning')
+        if (num_tries == num_tries_max):
+            set_message('Max. tries ({}) reached for: {}'.format(num_tries_max, url), 'warning')
             break
-        elif (numTries > 0):
-            set_message('Retrying ({}/{}): {}'.format(numTries, numTriesMax-1, url), 'warning')
-            sleep(timeWaitSecondsRetry)
+        elif (num_tries > 0):
+            set_message('Retrying ({}/{}): {}'.format(num_tries, num_tries_max-1, url), 'warning')
+            sleep(time_wait_seconds_retry)
         try:
             if (verbose):
                 set_message(url, 'calling')
-            numTries += 1
+            num_tries += 1
             r = session.get(url)
             if (r.status_code == 200):
                 break
@@ -68,7 +68,7 @@ def try_requests(url, **kwargs):
             # Continue otherwise we get kicked out of the while loop. This takes us to the top of the loop:
             continue
 
-    return r, numTries
+    return r, num_tries
 
 # --------------------------------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ def get_catalogue_urls(**kwargs):
         print(stack()[0].function)
 
     try:
-        collectionPage, numTries = try_requests(collectionUrl, **kwargs)
+        collectionPage, num_tries = try_requests(collectionUrl, **kwargs)
         if (collectionPage.status_code != 200):
             raise Exception()
         if (any([type(i)!=str for i in collectionPage.json()['hasPart']])):
@@ -116,7 +116,7 @@ def get_dataset_urls(**kwargs):
         try:
             if (catalogueUrlIdx != 0):
                 sleep(timeWaitSeconds)
-            cataloguePage, numTries = try_requests(catalogueUrl, **kwargs)
+            cataloguePage, num_tries = try_requests(catalogueUrl, **kwargs)
             if (cataloguePage.status_code != 200):
                 raise Exception()
             if (any([type(i)!=str for i in cataloguePage.json()['dataset']])):
@@ -148,7 +148,7 @@ def get_feeds(**kwargs):
         try:
             if (datasetUrlIdx != 0):
                 sleep(timeWaitSeconds)
-            datasetPage, numTries = try_requests(datasetUrl, **kwargs)
+            datasetPage, num_tries = try_requests(datasetUrl, **kwargs)
             if (datasetPage.status_code != 200):
                 raise Exception()
             soup = BeautifulSoup(datasetPage.text, 'html.parser')
@@ -245,7 +245,7 @@ def get_opportunities(arg, **kwargs):
 
     try:
         feedUrl = opportunities['nextUrl']
-        feedPage, numTries = try_requests(feedUrl, **kwargs)
+        feedPage, num_tries = try_requests(feedUrl, **kwargs)
         if (feedPage.status_code != 200):
             raise Exception()
         for item in feedPage.json()['items']:
