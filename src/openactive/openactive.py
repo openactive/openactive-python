@@ -76,27 +76,27 @@ def get_catalogue_urls(**kwargs):
     flat = kwargs.get('flat', False)
     verbose = kwargs.get('verbose', False)
 
-    catalogueUrls = {}
+    catalogue_urls = {}
 
-    collectionUrl = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
+    collection_url = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
 
     if (verbose):
         print(stack()[0].function)
 
     try:
-        collectionPage, num_tries = try_requests(collectionUrl, **kwargs)
-        if (collectionPage.status_code != 200):
+        collection_page, num_tries = try_requests(collection_url, **kwargs)
+        if (collection_page.status_code != 200):
             raise Exception()
-        if (any([type(i)!=str for i in collectionPage.json()['hasPart']])):
+        if (any([type(i)!=str for i in collection_page.json()['hasPart']])):
             raise Exception()
-        catalogueUrls[collectionUrl] = collectionPage.json()['hasPart']
+        catalogue_urls[collection_url] = collection_page.json()['hasPart']
     except:
-        set_message('Can\'t get collection: {}'.format(collectionUrl), 'error')
+        set_message('Can\'t get collection: {}'.format(collection_url), 'error')
 
     if (not flat):
-        return catalogueUrls
+        return catalogue_urls
     else:
-        return list(chain.from_iterable(catalogueUrls.values()))
+        return list(chain.from_iterable(catalogue_urls.values()))
 
 # --------------------------------------------------------------------------------------------------
 
