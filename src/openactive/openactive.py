@@ -311,19 +311,19 @@ def get_item_kinds(opportunities):
 # --------------------------------------------------------------------------------------------------
 
 def get_item_data_types(opportunities):
-    itemDataTypes = {}
+    item_data_types = {}
 
     for item in opportunities['items'].values():
         if ('data' in item.keys()):
             for type in ['type', '@type']:
                 if (type in item['data'].keys()):
-                    if (item['data'][type] not in itemDataTypes.keys()):
-                        itemDataTypes[item['data'][type]] = 1
+                    if (item['data'][type] not in item_data_types.keys()):
+                        item_data_types[item['data'][type]] = 1
                     else:
-                        itemDataTypes[item['data'][type]] += 1
+                        item_data_types[item['data'][type]] += 1
                     break
 
-    return itemDataTypes
+    return item_data_types
 
 # --------------------------------------------------------------------------------------------------
 
