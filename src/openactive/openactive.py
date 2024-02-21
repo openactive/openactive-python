@@ -429,18 +429,18 @@ def get_superevent_ids(superevent):
 
 # --------------------------------------------------------------------------------------------------
 
-def get_superevents(subevent, supereventOpportunities):
+def get_superevents(subevent, superevent_opportunities):
     superevents = []
 
-    supereventIdInSubevent = get_superevent_id_in_subevent(subevent)
+    superevent_id_in_subevent = get_superevent_id_in_subevent(subevent)
 
-    if (supereventIdInSubevent is not None):
-        for superevent in supereventOpportunities['items'].values():
-            supereventId, supereventDataId = get_superevent_ids(superevent)
-            if (   (    (supereventId is not None)
-                    and (supereventId == supereventIdInSubevent) )
-                or (    (supereventDataId is not None)
-                    and (supereventDataId == supereventIdInSubevent) )
+    if (superevent_id_in_subevent is not None):
+        for superevent in superevent_opportunities['items'].values():
+            superevent_id, superevent_data_id = get_superevent_ids(superevent)
+            if (   (    (superevent_id is not None)
+                    and (superevent_id == superevent_id_in_subevent) )
+                or (    (superevent_data_id is not None)
+                    and (superevent_data_id == superevent_id_in_subevent) )
             ):
                 superevents.append(superevent)
 
