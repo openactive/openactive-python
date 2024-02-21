@@ -390,19 +390,19 @@ def get_partner_url(url1, urls):
 # --------------------------------------------------------------------------------------------------
 
 def get_superevent_id_in_subevent(subevent):
-    supereventIdInSubevent = None
+    superevent_id_in_subevent = None
 
     if (subevent.get('data') is not None):
         if (    (subevent['data'].get('superEvent') is not None)
             and (type(subevent['data']['superEvent']) in [str, int])
         ):
-            supereventIdInSubevent = str(subevent['data']['superEvent']).split('/')[-1]
+            superevent_id_in_subevent = str(subevent['data']['superEvent']).split('/')[-1]
         elif (  (subevent['data'].get('facilityUse') is not None)
             and (type(subevent['data']['facilityUse']) in [str, int])
         ):
-            supereventIdInSubevent = str(subevent['data']['facilityUse']).split('/')[-1]
+            superevent_id_in_subevent = str(subevent['data']['facilityUse']).split('/')[-1]
 
-    return supereventIdInSubevent
+    return superevent_id_in_subevent
 
 # --------------------------------------------------------------------------------------------------
 
