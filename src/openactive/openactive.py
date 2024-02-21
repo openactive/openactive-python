@@ -101,34 +101,34 @@ def get_catalogue_urls(**kwargs):
 # --------------------------------------------------------------------------------------------------
 
 def get_dataset_urls(**kwargs):
-    timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
+    time_wait_seconds = kwargs.get('time_wait_seconds', 0.2)
     flat = kwargs.get('flat', False)
     verbose = kwargs.get('verbose', False)
 
-    datasetUrls = {}
+    dataset_urls = {}
 
-    catalogueUrls = get_catalogue_urls(**{**kwargs, **{'flat': True}})
+    catalogue_urls = get_catalogue_urls(**{**kwargs, **{'flat': True}})
 
     if (verbose):
         print(stack()[0].function)
 
-    for catalogueUrlIdx,catalogueUrl in enumerate(catalogueUrls):
+    for catalogue_url_idx,catalogue_url in enumerate(catalogue_urls):
         try:
-            if (catalogueUrlIdx != 0):
-                sleep(timeWaitSeconds)
-            cataloguePage, num_tries = try_requests(catalogueUrl, **kwargs)
-            if (cataloguePage.status_code != 200):
+            if (catalogue_url_idx != 0):
+                sleep(time_wait_seconds)
+            catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
+            if (catalogue_page.status_code != 200):
                 raise Exception()
-            if (any([type(i)!=str for i in cataloguePage.json()['dataset']])):
+            if (any([type(i)!=str for i in catalogue_page.json()['dataset']])):
                 raise Exception()
-            datasetUrls[catalogueUrl] = cataloguePage.json()['dataset']
+            dataset_urls[catalogue_url] = catalogue_page.json()['dataset']
         except:
-            set_message('Can\'t get catalogue: {}'.format(catalogueUrl), 'error')
+            set_message('Can\'t get catalogue: {}'.format(catalogue_url), 'error')
 
     if (not flat):
-        return datasetUrls
+        return dataset_urls
     else:
-        return list(chain.from_iterable(datasetUrls.values()))
+        return list(chain.from_iterable(dataset_urls.values()))
 
 # --------------------------------------------------------------------------------------------------
 
