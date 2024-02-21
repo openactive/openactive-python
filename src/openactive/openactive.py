@@ -407,25 +407,25 @@ def get_superevent_id_in_subevent(subevent):
 # --------------------------------------------------------------------------------------------------
 
 def get_superevent_ids(superevent):
-    supereventId = None
-    supereventDataId = None
+    superevent_id = None
+    superevent_data_id = None
 
     if (    (superevent.get('id') is not None)
         and (type(superevent['id']) in [str, int])
     ):
-        supereventId = str(superevent['id']).split('/')[-1]
+        superevent_id = str(superevent['id']).split('/')[-1]
 
     if (superevent.get('data') is not None):
         if (    (superevent['data'].get('id') is not None)
             and (type(superevent['data']['id']) in [str, int])
         ):
-            supereventDataId = str(superevent['data']['id']).split('/')[-1]
+            superevent_data_id = str(superevent['data']['id']).split('/')[-1]
         elif (  (superevent['data'].get('@id') is not None)
             and (type(superevent['data']['@id']) in [str, int])
         ):
-            supereventDataId = str(superevent['data']['@id']).split('/')[-1]
+            superevent_data_id = str(superevent['data']['@id']).split('/')[-1]
 
-    return supereventId, supereventDataId
+    return superevent_id, superevent_data_id
 
 # --------------------------------------------------------------------------------------------------
 
