@@ -216,6 +216,7 @@ opportunities_template = {
     'first_url_origin': '',
     'next_url': '',
 }
+
 def get_opportunities(arg, **kwargs):
     time_wait_seconds = kwargs.get('time_wait_seconds', 0.2)
     verbose = kwargs.get('verbose', False)
@@ -327,6 +328,26 @@ def get_item_data_types(opportunities):
 
 # --------------------------------------------------------------------------------------------------
 
+superevent_labels = \
+        ['SessionSeries'] \
+    +   ['FacilityUse', 'IndividualFacilityUse'] \
+    +   ['EventSeries', 'HeadlineEvent'] \
+    +   ['CourseInstance']
+subevent_labels = \
+        ['ScheduledSession', 'ScheduledSessions', 'session', 'sessions'] \
+    +   ['Slot', 'Slot for FacilityUse'] \
+    +   ['Event', 'OnDemandEvent']
+
+def get_event_type(label):
+    if (label in superevent_labels):
+        return 'superevent'
+    elif (label in subevent_labels):
+        return 'subevent'
+    else:
+        return None
+
+# --------------------------------------------------------------------------------------------------
+
 url_parts_groups = {
     'SessionSeries': [
       'session-series',
@@ -367,6 +388,7 @@ url_parts_type_map = {
     'FacilityUse': 'Slot',
     'Slot': 'FacilityUse',
 }
+
 def get_partner_url(url1, urls):
     url2 = None
 
