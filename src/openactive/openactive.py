@@ -210,14 +210,14 @@ def get_feeds(**kwargs):
 # server), then the returned dictionary can be manually resubmitted as the argument instead of a starting
 # URL string, and the code will determine the page in the RPDE stream to continue from.
 
-opportunitiesTemplate = {
+opportunities_template = {
     'items': {},
     'urls': [],
-    'firstUrlOrigin': '',
-    'nextUrl': '',
+    'first_url_origin': '',
+    'next_url': '',
 }
 def get_opportunities(arg, **kwargs):
-    timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
+    time_wait_seconds = kwargs.get('time_wait_seconds', 0.2)
     verbose = kwargs.get('verbose', False)
 
     if (    (verbose)
@@ -229,12 +229,12 @@ def get_opportunities(arg, **kwargs):
         if (len(arg) == 0):
             set_message('Invalid input, feed URL must be a string of non-zero length', 'warning')
             return
-        opportunities = copy.deepcopy(opportunitiesTemplate)
-        opportunities['nextUrl'] = set_url(arg, opportunities)
+        opportunities = copy.deepcopy(opportunities_template)
+        opportunities['next_url'] = set_url(arg, opportunities)
     elif (type(arg) == dict):
-        if (    (sorted(arg.keys()) != sorted(opportunitiesTemplate.keys()))
-            or  (type(arg['nextUrl']) != str)
-            or  (len(arg['nextUrl']) == 0)
+        if (    (sorted(arg.keys()) != sorted(opportunities_template.keys()))
+            or  (type(arg['next_url']) != str)
+            or  (len(arg['next_url']) == 0)
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
             return
@@ -244,11 +244,11 @@ def get_opportunities(arg, **kwargs):
         return
 
     try:
-        feedUrl = opportunities['nextUrl']
-        feedPage, num_tries = try_requests(feedUrl, **kwargs)
-        if (feedPage.status_code != 200):
+        feed_url = opportunities['next_url']
+        feed_page, num_tries = try_requests(feed_url, **kwargs)
+        if (feed_page.status_code != 200):
             raise Exception()
-        for item in feedPage.json()['items']:
+        for item in feed_page.json()['items']:
             if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
                 if (item['state'] == 'updated'):
                     if (    (item['id'] not in opportunities['items'].keys())
@@ -259,13 +259,13 @@ def get_opportunities(arg, **kwargs):
                     and (item['id'] in opportunities['items'].keys())
                 ):
                     del(opportunities['items'][item['id']])
-        opportunities['nextUrl'] = set_url(feedPage.json()['next'], opportunities)
-        if (opportunities['nextUrl'] != feedUrl):
-            opportunities['urls'].append(feedUrl)
-            sleep(timeWaitSeconds)
+        opportunities['next_url'] = set_url(feed_page.json()['next'], opportunities)
+        if (opportunities['next_url'] != feed_url):
+            opportunities['urls'].append(feed_url)
+            sleep(time_wait_seconds)
             opportunities = get_opportunities(opportunities, **kwargs)
     except:
-        set_message('Can\'t get feed: {}'.format(feedUrl), 'error')
+        set_message('Can\'t get feed: {}'.format(feed_url), 'error')
 
     return opportunities
 
