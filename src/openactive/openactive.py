@@ -297,16 +297,16 @@ def set_url(url_original, opportunities):
 # --------------------------------------------------------------------------------------------------
 
 def get_item_kinds(opportunities):
-    itemKinds = {}
+    item_kinds = {}
 
     for item in opportunities['items'].values():
         if ('kind' in item.keys()):
-            if (item['kind'] not in itemKinds.keys()):
-                itemKinds[item['kind']] = 1
+            if (item['kind'] not in item_kinds.keys()):
+                item_kinds[item['kind']] = 1
             else:
-                itemKinds[item['kind']] += 1
+                item_kinds[item['kind']] += 1
 
-    return itemKinds
+    return item_kinds
 
 # --------------------------------------------------------------------------------------------------
 
