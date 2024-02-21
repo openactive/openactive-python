@@ -327,7 +327,7 @@ def get_item_data_types(opportunities):
 
 # --------------------------------------------------------------------------------------------------
 
-urlPartsGroups = {
+url_parts_groups = {
     'SessionSeries': [
       'session-series',
       'sessionseries',
@@ -361,7 +361,7 @@ urlPartsGroups = {
       'slot',
     ],
 }
-urlPartsTypeMap = {
+url_parts_type_map = {
     'SessionSeries': 'ScheduledSession',
     'ScheduledSession': 'SessionSeries',
     'FacilityUse': 'Slot',
@@ -370,15 +370,15 @@ urlPartsTypeMap = {
 def get_partner_url(url1, urls):
     url2 = None
 
-    for url1PartsType,url1Parts in urlPartsGroups.items():
-        for url1Part in url1Parts:
-            if (url1Part in url1):
-                url2PartsType = urlPartsTypeMap[url1PartsType]
-                url2Parts = urlPartsGroups[url2PartsType]
-                for url2Part in url2Parts:
-                    url2Attempt = url1.replace(url1Part, url2Part)
-                    if (url2Attempt in urls):
-                        url2 = url2Attempt
+    for url1_parts_type,url1_parts in url_parts_groups.items():
+        for url1_part in url1_parts:
+            if (url1_part in url1):
+                url2_parts_type = url_parts_type_map[url1_parts_type]
+                url2_parts = url_parts_groups[url2_parts_type]
+                for url2_part in url2_parts:
+                    url2_attempt = url1.replace(url1_part, url2_part)
+                    if (url2_attempt in urls):
+                        url2 = url2_attempt
                         break
             if (url2 is not None):
                 break
