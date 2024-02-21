@@ -133,69 +133,69 @@ def get_dataset_urls(**kwargs):
 # --------------------------------------------------------------------------------------------------
 
 def get_feeds(**kwargs):
-    timeWaitSeconds = kwargs.get('timeWaitSeconds', 0.2)
+    time_wait_seconds = kwargs.get('time_wait_seconds', 0.2)
     flat = kwargs.get('flat', False)
     verbose = kwargs.get('verbose', False)
 
     feeds = {}
 
-    datasetUrls = get_dataset_urls(**{**kwargs, **{'flat': True}})
+    dataset_urls = get_dataset_urls(**{**kwargs, **{'flat': True}})
 
     if (verbose):
         print(stack()[0].function)
 
-    for datasetUrlIdx,datasetUrl in enumerate(datasetUrls):
+    for dataset_url_idx,dataset_url in enumerate(dataset_urls):
         try:
-            if (datasetUrlIdx != 0):
-                sleep(timeWaitSeconds)
-            datasetPage, num_tries = try_requests(datasetUrl, **kwargs)
-            if (datasetPage.status_code != 200):
+            if (dataset_url_idx != 0):
+                sleep(time_wait_seconds)
+            dataset_page, num_tries = try_requests(dataset_url, **kwargs)
+            if (dataset_page.status_code != 200):
                 raise Exception()
-            soup = BeautifulSoup(datasetPage.text, 'html.parser')
+            soup = BeautifulSoup(dataset_page.text, 'html.parser')
             for script in soup.head.find_all('script'):
                 if (    ('type' in script.attrs.keys())
                     and (script['type'] == 'application/ld+json')
                 ):
                     jsonld = json.loads(script.string)
                     if ('distribution' in jsonld.keys()):
-                        for feedIn in jsonld['distribution']:
-                            feedOut = {}
+                        for feed_in in jsonld['distribution']:
+                            feed_out = {}
 
                             try:
-                                feedOut['name'] = jsonld['name']
+                                feed_out['name'] = jsonld['name']
                             except:
-                                feedOut['name'] = ''
+                                feed_out['name'] = ''
                             try:
-                                feedOut['type'] = feedIn['name']
+                                feed_out['type'] = feed_in['name']
                             except:
-                                feedOut['type'] = ''
+                                feed_out['type'] = ''
                             try:
-                                feedOut['url'] = feedIn['contentUrl']
+                                feed_out['url'] = feed_in['contentUrl']
                             except:
-                                feedOut['url'] = ''
+                                feed_out['url'] = ''
                             try:
-                                feedOut['datasetUrl'] = datasetUrl
+                                feed_out['dataset_url'] = dataset_url
                             except:
-                                feedOut['datasetUrl'] = ''
+                                feed_out['dataset_url'] = ''
                             try:
-                                feedOut['discussionUrl'] = jsonld['discussionUrl']
+                                feed_out['discussion_url'] = jsonld['discussionUrl']
                             except:
-                                feedOut['discussionUrl'] = ''
+                                feed_out['discussion_url'] = ''
                             try:
-                                feedOut['licenseUrl'] = jsonld['license']
+                                feed_out['license_url'] = jsonld['license']
                             except:
-                                feedOut['licenseUrl'] = ''
+                                feed_out['license_url'] = ''
                             try:
-                                feedOut['publisherName'] = jsonld['publisher']['name']
+                                feed_out['publisher_name'] = jsonld['publisher']['name']
                             except:
-                                feedOut['publisherName'] = ''
+                                feed_out['publisher_name'] = ''
 
-                            if (len(feedOut.keys()) > 1):
-                                if (datasetUrl not in feeds.keys()):
-                                    feeds[datasetUrl] = []
-                                feeds[datasetUrl].append(feedOut)
+                            if (len(feed_out.keys()) > 1):
+                                if (dataset_url not in feeds.keys()):
+                                    feeds[dataset_url] = []
+                                feeds[dataset_url].append(feed_out)
         except:
-            set_message('Can\'t get dataset: {}'.format(datasetUrl), 'error')
+            set_message('Can\'t get dataset: {}'.format(dataset_url), 'error')
 
     if (not flat):
         return feeds
