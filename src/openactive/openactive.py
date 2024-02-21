@@ -271,26 +271,26 @@ def get_opportunities(arg, **kwargs):
 
 # --------------------------------------------------------------------------------------------------
 
-def set_url(urlOriginal, opportunities):
+def set_url(url_original, opportunities):
     url = ''
 
-    urlUnquoted = unquote(urlOriginal)
-    urlParsed = urlparse(urlUnquoted)
+    url_unquoted = unquote(url_original)
+    url_parsed = urlparse(url_unquoted)
 
-    if (    (urlParsed.scheme != '')
-        and (urlParsed.netloc != '')
+    if (    (url_parsed.scheme != '')
+        and (url_parsed.netloc != '')
     ):
         if (len(opportunities['urls']) == 0):
-            opportunities['firstUrlOrigin'] = '://'.join([urlParsed.scheme, urlParsed.netloc])
-        url = urlUnquoted
-    elif (  (urlParsed.path != '')
-        or  (urlParsed.query != '')
+            opportunities['first_url_origin'] = '://'.join([url_parsed.scheme, url_parsed.netloc])
+        url = url_unquoted
+    elif (  (url_parsed.path != '')
+        or  (url_parsed.query != '')
     ):
-        url = opportunities['firstUrlOrigin']
-        if (urlParsed.path != ''):
-            url += ('/' if (urlParsed.path[0] != '/') else '') + urlParsed.path
-        if (urlParsed.query != ''):
-            url += ('?' if (urlParsed.query[0] != '?') else '') + urlParsed.query
+        url = opportunities['first_url_origin']
+        if (url_parsed.path != ''):
+            url += ('/' if (url_parsed.path[0] != '/') else '') + url_parsed.path
+        if (url_parsed.query != ''):
+            url += ('?' if (url_parsed.query[0] != '?') else '') + url_parsed.query
 
     return url
 
