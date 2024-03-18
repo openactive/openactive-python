@@ -174,21 +174,21 @@ def get_feeds(**kwargs):
                             except:
                                 feed_out['url'] = ''
                             try:
-                                feed_out['dataset_url'] = dataset_url
+                                feed_out['datasetUrl'] = dataset_url
                             except:
-                                feed_out['dataset_url'] = ''
+                                feed_out['datasetUrl'] = ''
                             try:
-                                feed_out['discussion_url'] = jsonld['discussionUrl']
+                                feed_out['discussionUrl'] = jsonld['discussionUrl']
                             except:
-                                feed_out['discussion_url'] = ''
+                                feed_out['discussionUrl'] = ''
                             try:
-                                feed_out['license_url'] = jsonld['license']
+                                feed_out['licenseUrl'] = jsonld['license']
                             except:
-                                feed_out['license_url'] = ''
+                                feed_out['licenseUrl'] = ''
                             try:
-                                feed_out['publisher_name'] = jsonld['publisher']['name']
+                                feed_out['publisherName'] = jsonld['publisher']['name']
                             except:
-                                feed_out['publisher_name'] = ''
+                                feed_out['publisherName'] = ''
 
                             if (len(feed_out.keys()) > 1):
                                 if (dataset_url not in feeds.keys()):
@@ -213,8 +213,8 @@ def get_feeds(**kwargs):
 opportunities_template = {
     'items': {},
     'urls': [],
-    'first_url_origin': '',
-    'next_url': '',
+    'firstUrlOrigin': '',
+    'nextUrl': '',
 }
 
 def get_opportunities(arg, **kwargs):
@@ -231,11 +231,11 @@ def get_opportunities(arg, **kwargs):
             set_message('Invalid input, feed URL must be a string of non-zero length', 'warning')
             return
         opportunities = copy.deepcopy(opportunities_template)
-        opportunities['next_url'] = set_url(arg, opportunities)
+        opportunities['nextUrl'] = set_url(arg, opportunities)
     elif (type(arg) == dict):
         if (    (sorted(arg.keys()) != sorted(opportunities_template.keys()))
-            or  (type(arg['next_url']) != str)
-            or  (len(arg['next_url']) == 0)
+            or  (type(arg['nextUrl']) != str)
+            or  (len(arg['nextUrl']) == 0)
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
             return
@@ -245,7 +245,7 @@ def get_opportunities(arg, **kwargs):
         return
 
     try:
-        feed_url = opportunities['next_url']
+        feed_url = opportunities['nextUrl']
         feed_page, num_tries = try_requests(feed_url, **kwargs)
         if (feed_page.status_code != 200):
             raise Exception()
@@ -260,8 +260,8 @@ def get_opportunities(arg, **kwargs):
                     and (item['id'] in opportunities['items'].keys())
                 ):
                     del(opportunities['items'][item['id']])
-        opportunities['next_url'] = set_url(feed_page.json()['next'], opportunities)
-        if (opportunities['next_url'] != feed_url):
+        opportunities['nextUrl'] = set_url(feed_page.json()['next'], opportunities)
+        if (opportunities['nextUrl'] != feed_url):
             opportunities['urls'].append(feed_url)
             sleep(time_wait_seconds)
             opportunities = get_opportunities(opportunities, **kwargs)
@@ -282,12 +282,12 @@ def set_url(url_original, opportunities):
         and (url_parsed.netloc != '')
     ):
         if (len(opportunities['urls']) == 0):
-            opportunities['first_url_origin'] = '://'.join([url_parsed.scheme, url_parsed.netloc])
+            opportunities['firstUrlOrigin'] = '://'.join([url_parsed.scheme, url_parsed.netloc])
         url = url_unquoted
     elif (  (url_parsed.path != '')
         or  (url_parsed.query != '')
     ):
-        url = opportunities['first_url_origin']
+        url = opportunities['firstUrlOrigin']
         if (url_parsed.path != ''):
             url += ('/' if (url_parsed.path[0] != '/') else '') + url_parsed.path
         if (url_parsed.query != ''):
