@@ -204,6 +204,69 @@ def get_feeds(**kwargs):
 
 # --------------------------------------------------------------------------------------------------
 
+url_parts_groups = {
+    'SessionSeries': [
+      'session-series',
+      'sessionseries',
+    ],
+    'ScheduledSession': [
+      'scheduled-sessions',
+      'scheduledsessions',
+      'scheduled-session',
+      'scheduledsession',
+    ],
+    'FacilityUse': [
+      'individual-facility-uses',
+      'individual-facilityuses',
+      'individualfacility-uses',
+      'individualfacilityuses',
+      'individual-facility-use',
+      'individual-facilityuse',
+      'individualfacility-use',
+      'individualfacilityuse',
+      'facility-uses',
+      'facilityuses',
+      'facility-use',
+      'facilityuse',
+    ],
+    'Slot': [
+      'facility-uses/events',
+      'facility-uses/event',
+      'facility-use-slots',
+      'facility-use-slot',
+      'slots',
+      'slot',
+    ],
+}
+url_parts_type_map = {
+    'SessionSeries': 'ScheduledSession',
+    'ScheduledSession': 'SessionSeries',
+    'FacilityUse': 'Slot',
+    'Slot': 'FacilityUse',
+}
+
+def get_partner_url(url1, urls):
+    url2 = None
+
+    for url1_parts_type,url1_parts in url_parts_groups.items():
+        for url1_part in url1_parts:
+            if (url1_part in url1):
+                url2_parts_type = url_parts_type_map[url1_parts_type]
+                url2_parts = url_parts_groups[url2_parts_type]
+                for url2_part in url2_parts:
+                    url2_attempt = url1.replace(url1_part, url2_part)
+                    if (url2_attempt in urls):
+                        url2 = url2_attempt
+                        break
+            if (url2 is not None):
+                break
+        if (url2 is not None):
+            break
+
+    return url2
+
+# --------------------------------------------------------------------------------------------------
+
 # This is a recursive function. On the first call the opportunities dictionary will be empty and so
 # will be initialised. On subsequent automated internal calls it will have content to be added to.
 # Also, if a call fails for some reason when running in some other code (i.e. when not running on a
@@ -345,69 +408,6 @@ def get_event_type(label):
         return 'subevent'
     else:
         return None
-
-# --------------------------------------------------------------------------------------------------
-
-url_parts_groups = {
-    'SessionSeries': [
-      'session-series',
-      'sessionseries',
-    ],
-    'ScheduledSession': [
-      'scheduled-sessions',
-      'scheduledsessions',
-      'scheduled-session',
-      'scheduledsession',
-    ],
-    'FacilityUse': [
-      'individual-facility-uses',
-      'individual-facilityuses',
-      'individualfacility-uses',
-      'individualfacilityuses',
-      'individual-facility-use',
-      'individual-facilityuse',
-      'individualfacility-use',
-      'individualfacilityuse',
-      'facility-uses',
-      'facilityuses',
-      'facility-use',
-      'facilityuse',
-    ],
-    'Slot': [
-      'facility-uses/events',
-      'facility-uses/event',
-      'facility-use-slots',
-      'facility-use-slot',
-      'slots',
-      'slot',
-    ],
-}
-url_parts_type_map = {
-    'SessionSeries': 'ScheduledSession',
-    'ScheduledSession': 'SessionSeries',
-    'FacilityUse': 'Slot',
-    'Slot': 'FacilityUse',
-}
-
-def get_partner_url(url1, urls):
-    url2 = None
-
-    for url1_parts_type,url1_parts in url_parts_groups.items():
-        for url1_part in url1_parts:
-            if (url1_part in url1):
-                url2_parts_type = url_parts_type_map[url1_parts_type]
-                url2_parts = url_parts_groups[url2_parts_type]
-                for url2_part in url2_parts:
-                    url2_attempt = url1.replace(url1_part, url2_part)
-                    if (url2_attempt in urls):
-                        url2 = url2_attempt
-                        break
-            if (url2 is not None):
-                break
-        if (url2 is not None):
-            break
-
-    return url2
 
 # --------------------------------------------------------------------------------------------------
 
