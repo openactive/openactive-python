@@ -7,8 +7,11 @@ from .openactive import (
     get_catalogue_urls,
     get_dataset_urls,
     get_feeds,
+    get_partner_feed_url,
     get_opportunities,
     get_item_kinds,
     get_item_data_types,
-    get_partner_url,
+    get_event_type,
+    get_superevents,
+    get_subevents,
 )
