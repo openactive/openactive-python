@@ -411,46 +411,6 @@ def get_event_type(label):
 
 # --------------------------------------------------------------------------------------------------
 
-def get_superevent_id_in_subevent(subevent):
-    superevent_id_in_subevent = None
-
-    if (subevent.get('data') is not None):
-        if (    (subevent['data'].get('superEvent') is not None)
-            and (type(subevent['data']['superEvent']) in [str, int])
-        ):
-            superevent_id_in_subevent = str(subevent['data']['superEvent']).split('/')[-1]
-        elif (  (subevent['data'].get('facilityUse') is not None)
-            and (type(subevent['data']['facilityUse']) in [str, int])
-        ):
-            superevent_id_in_subevent = str(subevent['data']['facilityUse']).split('/')[-1]
-
-    return superevent_id_in_subevent
-
-# --------------------------------------------------------------------------------------------------
-
-def get_superevent_ids(superevent):
-    superevent_id = None
-    superevent_data_id = None
-
-    if (    (superevent.get('id') is not None)
-        and (type(superevent['id']) in [str, int])
-    ):
-        superevent_id = str(superevent['id']).split('/')[-1]
-
-    if (superevent.get('data') is not None):
-        if (    (superevent['data'].get('id') is not None)
-            and (type(superevent['data']['id']) in [str, int])
-        ):
-            superevent_data_id = str(superevent['data']['id']).split('/')[-1]
-        elif (  (superevent['data'].get('@id') is not None)
-            and (type(superevent['data']['@id']) in [str, int])
-        ):
-            superevent_data_id = str(superevent['data']['@id']).split('/')[-1]
-
-    return superevent_id, superevent_data_id
-
-# --------------------------------------------------------------------------------------------------
-
 def get_superevents(subevent, superevent_opportunities):
     superevents = []
 
@@ -488,3 +448,43 @@ def get_subevents(superevent, subevent_opportunities):
                 subevents.append(subevent)
 
     return subevents
+
+# --------------------------------------------------------------------------------------------------
+
+def get_superevent_id_in_subevent(subevent):
+    superevent_id_in_subevent = None
+
+    if (subevent.get('data') is not None):
+        if (    (subevent['data'].get('superEvent') is not None)
+            and (type(subevent['data']['superEvent']) in [str, int])
+        ):
+            superevent_id_in_subevent = str(subevent['data']['superEvent']).split('/')[-1]
+        elif (  (subevent['data'].get('facilityUse') is not None)
+            and (type(subevent['data']['facilityUse']) in [str, int])
+        ):
+            superevent_id_in_subevent = str(subevent['data']['facilityUse']).split('/')[-1]
+
+    return superevent_id_in_subevent
+
+# --------------------------------------------------------------------------------------------------
+
+def get_superevent_ids(superevent):
+    superevent_id = None
+    superevent_data_id = None
+
+    if (    (superevent.get('id') is not None)
+        and (type(superevent['id']) in [str, int])
+    ):
+        superevent_id = str(superevent['id']).split('/')[-1]
+
+    if (superevent.get('data') is not None):
+        if (    (superevent['data'].get('id') is not None)
+            and (type(superevent['data']['id']) in [str, int])
+        ):
+            superevent_data_id = str(superevent['data']['id']).split('/')[-1]
+        elif (  (superevent['data'].get('@id') is not None)
+            and (type(superevent['data']['@id']) in [str, int])
+        ):
+            superevent_data_id = str(superevent['data']['@id']).split('/')[-1]
+
+    return superevent_id, superevent_data_id
