@@ -294,7 +294,7 @@ def get_opportunities(arg, **kwargs):
             set_message('Invalid input, feed URL must be a string of non-zero length', 'warning')
             return
         opportunities = copy.deepcopy(opportunities_template)
-        opportunities['nextUrl'] = set_url(arg, opportunities)
+        opportunities['nextUrl'] = get_opportunities_next_url(arg, opportunities)
     elif (type(arg) == dict):
         if (    (sorted(arg.keys()) != sorted(opportunities_template.keys()))
             or  (type(arg['nextUrl']) != str)
@@ -323,7 +323,7 @@ def get_opportunities(arg, **kwargs):
                     and (item['id'] in opportunities['items'].keys())
                 ):
                     del(opportunities['items'][item['id']])
-        opportunities['nextUrl'] = set_url(feed_page.json()['next'], opportunities)
+        opportunities['nextUrl'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
         if (opportunities['nextUrl'] != feed_url):
             opportunities['urls'].append(feed_url)
             sleep(time_wait_seconds)
@@ -335,28 +335,28 @@ def get_opportunities(arg, **kwargs):
 
 # --------------------------------------------------------------------------------------------------
 
-def set_url(url_original, opportunities):
-    url = ''
+def get_opportunities_next_url(next_url_original, opportunities):
+    next_url = ''
 
-    url_unquoted = unquote(url_original)
-    url_parsed = urlparse(url_unquoted)
+    next_url_original_unquoted = unquote(next_url_original)
+    next_url_original_parsed = urlparse(next_url_original_unquoted)
 
-    if (    (url_parsed.scheme != '')
-        and (url_parsed.netloc != '')
+    if (    (next_url_original_parsed.scheme != '')
+        and (next_url_original_parsed.netloc != '')
     ):
         if (len(opportunities['urls']) == 0):
-            opportunities['firstUrlOrigin'] = '://'.join([url_parsed.scheme, url_parsed.netloc])
-        url = url_unquoted
-    elif (  (url_parsed.path != '')
-        or  (url_parsed.query != '')
+            opportunities['firstUrlOrigin'] = '://'.join([next_url_original_parsed.scheme, next_url_original_parsed.netloc])
+        next_url = next_url_original_unquoted
+    elif (  (next_url_original_parsed.path != '')
+        or  (next_url_original_parsed.query != '')
     ):
-        url = opportunities['firstUrlOrigin']
-        if (url_parsed.path != ''):
-            url += ('/' if (url_parsed.path[0] != '/') else '') + url_parsed.path
-        if (url_parsed.query != ''):
-            url += ('?' if (url_parsed.query[0] != '?') else '') + url_parsed.query
+        next_url = opportunities['firstUrlOrigin']
+        if (next_url_original_parsed.path != ''):
+            next_url += ('/' if (next_url_original_parsed.path[0] != '/') else '') + next_url_original_parsed.path
+        if (next_url_original_parsed.query != ''):
+            next_url += ('?' if (next_url_original_parsed.query[0] != '?') else '') + next_url_original_parsed.query
 
-    return url
+    return next_url
 
 # --------------------------------------------------------------------------------------------------
 
