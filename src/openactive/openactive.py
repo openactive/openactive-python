@@ -204,7 +204,7 @@ def get_feeds(**kwargs):
 
 # --------------------------------------------------------------------------------------------------
 
-url_parts_groups = {
+feed_url_parts_groups = {
     'SessionSeries': [
       'session-series',
       'sessionseries',
@@ -238,32 +238,32 @@ url_parts_groups = {
       'slot',
     ],
 }
-url_parts_type_map = {
+feed_url_parts_type_map = {
     'SessionSeries': 'ScheduledSession',
     'ScheduledSession': 'SessionSeries',
     'FacilityUse': 'Slot',
     'Slot': 'FacilityUse',
 }
 
-def get_partner_url(url1, urls):
-    url2 = None
+def get_partner_feed_url(feed1_url, feed2_url_options):
+    feed2_url = None
 
-    for url1_parts_type,url1_parts in url_parts_groups.items():
-        for url1_part in url1_parts:
-            if (url1_part in url1):
-                url2_parts_type = url_parts_type_map[url1_parts_type]
-                url2_parts = url_parts_groups[url2_parts_type]
-                for url2_part in url2_parts:
-                    url2_attempt = url1.replace(url1_part, url2_part)
-                    if (url2_attempt in urls):
-                        url2 = url2_attempt
+    for feed1_url_parts_type,feed1_url_parts in feed_url_parts_groups.items():
+        for feed1_url_part in feed1_url_parts:
+            if (feed1_url_part in feed1_url):
+                feed2_url_parts_type = feed_url_parts_type_map[feed1_url_parts_type]
+                feed2_url_parts = feed_url_parts_groups[feed2_url_parts_type]
+                for feed2_url_part in feed2_url_parts:
+                    feed2_url_attempt = feed1_url.replace(feed1_url_part, feed2_url_part)
+                    if (feed2_url_attempt in feed2_url_options):
+                        feed2_url = feed2_url_attempt
                         break
-            if (url2 is not None):
+            if (feed2_url is not None):
                 break
-        if (url2 is not None):
+        if (feed2_url is not None):
             break
 
-    return url2
+    return feed2_url
 
 # --------------------------------------------------------------------------------------------------
 
