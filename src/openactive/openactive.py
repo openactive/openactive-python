@@ -10,6 +10,10 @@ from urllib.parse import unquote, urlparse
 
 # --------------------------------------------------------------------------------------------------
 
+SECONDS_WAIT_NEXT_DEFAULT = 0.2
+
+# --------------------------------------------------------------------------------------------------
+
 def set_message(message, message_type=None):
     if (message_type == 'calling'):
         print(colored('CALLING: ' + message, 'blue'))
@@ -43,7 +47,7 @@ session = requests.Session()
 
 def try_requests(url, **kwargs):
     num_tries_max = kwargs.get('num_tries_max', 10)
-    time_wait_seconds_retry = kwargs.get('time_wait_seconds_retry', 1)
+    seconds_wait_retry = kwargs.get('seconds_wait_retry', 1)
     verbose = kwargs.get('verbose', False)
 
     r = None
@@ -55,7 +59,7 @@ def try_requests(url, **kwargs):
             break
         elif (num_tries > 0):
             set_message('Retrying ({}/{}): {}'.format(num_tries, num_tries_max-1, url), 'warning')
-            sleep(time_wait_seconds_retry)
+            sleep(seconds_wait_retry)
         try:
             if (verbose):
                 set_message(url, 'calling')
@@ -101,7 +105,7 @@ def get_catalogue_urls(**kwargs):
 # --------------------------------------------------------------------------------------------------
 
 def get_dataset_urls(**kwargs):
-    time_wait_seconds = kwargs.get('time_wait_seconds', 0.2)
+    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
     flat = kwargs.get('flat', False)
     verbose = kwargs.get('verbose', False)
 
@@ -115,7 +119,7 @@ def get_dataset_urls(**kwargs):
     for catalogue_url_idx,catalogue_url in enumerate(catalogue_urls):
         try:
             if (catalogue_url_idx != 0):
-                sleep(time_wait_seconds)
+                sleep(seconds_wait_next)
             catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
             if (catalogue_page.status_code != 200):
                 raise Exception()
@@ -133,7 +137,7 @@ def get_dataset_urls(**kwargs):
 # --------------------------------------------------------------------------------------------------
 
 def get_feeds(**kwargs):
-    time_wait_seconds = kwargs.get('time_wait_seconds', 0.2)
+    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
     flat = kwargs.get('flat', False)
     verbose = kwargs.get('verbose', False)
 
@@ -147,7 +151,7 @@ def get_feeds(**kwargs):
     for dataset_url_idx,dataset_url in enumerate(dataset_urls):
         try:
             if (dataset_url_idx != 0):
-                sleep(time_wait_seconds)
+                sleep(seconds_wait_next)
             dataset_page, num_tries = try_requests(dataset_url, **kwargs)
             if (dataset_page.status_code != 200):
                 raise Exception()
@@ -281,7 +285,7 @@ opportunities_template = {
 }
 
 def get_opportunities(arg, **kwargs):
-    time_wait_seconds = kwargs.get('time_wait_seconds', 0.2)
+    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
     verbose = kwargs.get('verbose', False)
 
     if (    (verbose)
@@ -326,7 +330,7 @@ def get_opportunities(arg, **kwargs):
         opportunities['nextUrl'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
         if (opportunities['nextUrl'] != feed_url):
             opportunities['urls'].append(feed_url)
-            sleep(time_wait_seconds)
+            sleep(seconds_wait_next)
             opportunities = get_opportunities(opportunities, **kwargs)
     except:
         set_message('Can\'t get feed: {}'.format(feed_url), 'error')
