@@ -480,6 +480,10 @@ def get_superevent_ids(superevent):
         and (type(superevent['id']) in [str, int])
     ):
         superevent_id = str(superevent['id']).split('/')[-1]
+    elif (  (superevent.get('@id') is not None)
+        and (type(superevent['@id']) in [str, int])
+    ):
+        superevent_id = str(superevent['@id']).split('/')[-1]
 
     if (superevent.get('data') is not None):
         if (    (superevent['data'].get('id') is not None)
