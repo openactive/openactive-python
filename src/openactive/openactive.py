@@ -194,10 +194,9 @@ def get_feeds(**kwargs):
                             except:
                                 feed_out['publisherName'] = ''
 
-                            if (len(feed_out.keys()) > 1):
-                                if (dataset_url not in feeds.keys()):
-                                    feeds[dataset_url] = []
-                                feeds[dataset_url].append(feed_out)
+                            if (dataset_url not in feeds.keys()):
+                                feeds[dataset_url] = []
+                            feeds[dataset_url].append(feed_out)
         except:
             set_message('Can\'t get dataset: {}'.format(dataset_url), 'error')
 
