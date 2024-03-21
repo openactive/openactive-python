@@ -467,15 +467,13 @@ def get_subevents(superevent, subevent_opportunities):
 def get_superevent_id_in_subevent(subevent):
     superevent_id_in_subevent = None
 
-    if (subevent.get('data') is not None):
-        if (    (subevent['data'].get('superEvent') is not None)
-            and (type(subevent['data']['superEvent']) in [str, int])
-        ):
-            superevent_id_in_subevent = str(subevent['data']['superEvent']).split('/')[-1]
-        elif (  (subevent['data'].get('facilityUse') is not None)
-            and (type(subevent['data']['facilityUse']) in [str, int])
-        ):
-            superevent_id_in_subevent = str(subevent['data']['facilityUse']).split('/')[-1]
+    if ('data' in subevent.keys()):
+        for key in ['superEvent', 'facilityUse']:
+            if (    (key in subevent['data'].keys())
+                and (type(subevent['data'][key]) in [str, int])
+            ):
+                superevent_id_in_subevent = str(subevent['data'][key]).split('/')[-1]
+                break
 
     return superevent_id_in_subevent
 
@@ -485,23 +483,19 @@ def get_superevent_ids(superevent):
     superevent_id = None
     superevent_data_id = None
 
-    if (    (superevent.get('id') is not None)
-        and (type(superevent['id']) in [str, int])
-    ):
-        superevent_id = str(superevent['id']).split('/')[-1]
-    elif (  (superevent.get('@id') is not None)
-        and (type(superevent['@id']) in [str, int])
-    ):
-        superevent_id = str(superevent['@id']).split('/')[-1]
+    for key in ['id', '@id']:
+        if (    (key in superevent.keys())
+            and (type(superevent[key]) in [str, int])
+        ):
+            superevent_id = str(superevent[key]).split('/')[-1]
+            break
 
-    if (superevent.get('data') is not None):
-        if (    (superevent['data'].get('id') is not None)
-            and (type(superevent['data']['id']) in [str, int])
-        ):
-            superevent_data_id = str(superevent['data']['id']).split('/')[-1]
-        elif (  (superevent['data'].get('@id') is not None)
-            and (type(superevent['data']['@id']) in [str, int])
-        ):
-            superevent_data_id = str(superevent['data']['@id']).split('/')[-1]
+    if ('data' in superevent.keys()):
+        for key in ['id', '@id']:
+            if (    (key in superevent['data'].keys())
+                and (type(superevent['data'][key]) in [str, int])
+            ):
+                superevent_data_id = str(superevent['data'][key]).split('/')[-1]
+                break
 
     return superevent_id, superevent_data_id
