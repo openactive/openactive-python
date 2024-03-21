@@ -46,9 +46,9 @@ session = requests.Session()
 # session.mount('http://', adapter)
 
 def try_requests(url, **kwargs):
-    num_tries_max = kwargs.get('num_tries_max', 10)
-    seconds_wait_retry = kwargs.get('seconds_wait_retry', 1)
     verbose = kwargs.get('verbose', False)
+    seconds_wait_retry = kwargs.get('seconds_wait_retry', 1)
+    num_tries_max = kwargs.get('num_tries_max', 10)
 
     r = None
     num_tries = 0
@@ -105,9 +105,9 @@ def get_catalogue_urls(**kwargs):
 # --------------------------------------------------------------------------------------------------
 
 def get_dataset_urls(**kwargs):
-    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
     flat = kwargs.get('flat', False)
     verbose = kwargs.get('verbose', False)
+    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
 
     dataset_urls = {}
 
@@ -137,9 +137,9 @@ def get_dataset_urls(**kwargs):
 # --------------------------------------------------------------------------------------------------
 
 def get_feeds(**kwargs):
-    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
     flat = kwargs.get('flat', False)
     verbose = kwargs.get('verbose', False)
+    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
 
     feeds = {}
 
@@ -285,8 +285,8 @@ opportunities_template = {
 }
 
 def get_opportunities(arg, **kwargs):
-    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
     verbose = kwargs.get('verbose', False)
+    seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
 
     if (    (verbose)
         and (stack()[0].function != stack()[1].function)
