@@ -91,7 +91,7 @@ def get_catalogue_urls(**kwargs):
         collection_page, num_tries = try_requests(collection_url, **kwargs)
         if (collection_page.status_code != 200):
             raise Exception()
-        if (any([type(i)!=str for i in collection_page.json()['hasPart']])):
+        if (any([type(i) != str for i in collection_page.json()['hasPart']])):
             raise Exception()
         catalogue_urls[collection_url] = collection_page.json()['hasPart']
     except:
@@ -123,7 +123,7 @@ def get_dataset_urls(**kwargs):
             catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
             if (catalogue_page.status_code != 200):
                 raise Exception()
-            if (any([type(i)!=str for i in catalogue_page.json()['dataset']])):
+            if (any([type(i) != str for i in catalogue_page.json()['dataset']])):
                 raise Exception()
             dataset_urls[catalogue_url] = catalogue_page.json()['dataset']
         except:
@@ -274,7 +274,7 @@ def get_partner_feed_url(feed1_url, feed2_url_options):
 # will be initialised. On subsequent automated internal calls it will have content to be added to.
 # Also, if a call fails for some reason when running in some other code (i.e. when not running on a
 # server), then the returned dictionary can be manually resubmitted as the argument instead of a starting
-# URL string, and the code will determine the page in the RPDE stream to continue from.
+# URL string, and the code will continue from the 'nextUrl' in the dictionary.
 
 opportunities_template = {
     'items': {},
@@ -300,7 +300,8 @@ def get_opportunities(arg, **kwargs):
         opportunities['nextUrl'] = get_opportunities_next_url(arg, opportunities)
     elif (type(arg) == dict):
         if (    (sorted(arg.keys()) != sorted(opportunities_template.keys()))
-            or  (type(arg['nextUrl']) != str)
+            or  (any([type(arg[key]) != type(opportunities_template[key]) for key in arg.keys()]))
+            or  (len(arg['firstUrlOrigin']) == 0)
             or  (len(arg['nextUrl']) == 0)
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
@@ -326,9 +327,18 @@ def get_opportunities(arg, **kwargs):
                     and (item['id'] in opportunities['items'].keys())
                 ):
                     del(opportunities['items'][item['id']])
-        opportunities['nextUrl'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
+        if (    ('next' in feed_page.json().keys())
+            and (type(feed_page.json()['next']) == str)
+            and (len(feed_page.json()['next']) > 0)
+        ):
+            opportunities['nextUrl'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
+        else:
+            opportunities['nextUrl'] = ''
         if (opportunities['nextUrl'] != feed_url):
             opportunities['urls'].append(feed_url)
+        if (    (opportunities['nextUrl'])
+            and (opportunities['nextUrl'] != feed_url)
+        ):
             sleep(seconds_wait_next)
             opportunities = get_opportunities(opportunities, **kwargs)
     except:
