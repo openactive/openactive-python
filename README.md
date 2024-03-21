@@ -2,7 +2,7 @@
 
 [![License](http://img.shields.io/:license-mit-blue.svg)](https://opensource.org/license/mit/)
 
-This is a Python package for reading feeds of sports and activity data published in the OpenActive format. Note that this is an experimental package, and although care has been taken to cater for many typical OpenActive situations, there may still be those that don't work as expected. It is therefore not recommended to directly use this package for critical pipelines or automations, but to treat it as a toolset for exploration and education. The underlying code is relatively short and can be consulted for informing your own approach if needed.
+This is a Python package for reading feeds of sports and activity data published in the OpenActive format. Note that this is an experimental package, and although care has been taken to cater for many typical OpenActive situations, there may still be those that don't work as expected. It is therefore recommended to not directly use this package for critical pipelines or automations, but to treat it as a toolset for exploration and education. The underlying code is relatively short and can be consulted for informing your own approach if needed.
 
 # Installation
 
@@ -40,7 +40,7 @@ In a Python session running in an environment with the `openactive` package inst
 >>> import openactive as oa
 ```
 
-In order to effectively use the package, we must first understand the OpenActive data model. OpenActive data is released by a data publisher as a Realtime Paged Data Exchange (RPDE) feed, which is described in more detail later. There can be multiple feeds from a given publisher, and in fact we often have complimentary pairs of feeds, such as having one for super-event data (e.g. various series of fitness classes) and one for sub-event data (e.g. various scheduled sessions in the various series). In such cases, both feeds must be read in order to get a complete picture, and items in one feed will reference items in the other feed. The alternative to this would be a system that only has one feed for all of this data, with each super-event data item copied into each associated sub-event data item, which would be a lot of duplication.
+In order to effectively use the package, we must first understand the OpenActive ecosystem. OpenActive data is decentralised, so there is no single owner or location that stores and serves the data. Instead, data is released by multiple data publishers as separate Realtime Paged Data Exchange (RPDE) feeds, which are described in more detail later. There can also be multiple feeds from a given publisher, and in fact we often have complimentary pairs of feeds, such as having one for super-event data (e.g. various series of fitness classes) and one for sub-event data (e.g. various sessions in the various series). In such cases, both feeds must be read in order to get a complete picture, and items in one feed will reference items in the other feed. The alternative to this would be to copy each super-event data item into each associated sub-event data item, resulting in one feed with a lot of duplication.
 
 A group of feeds from a data publisher is bundled together in a "dataset", a group of datasets from different data publishers is bundled together in a "catalogue", and a group of catalogues is bundled together in a "collection". There is only one collection, which is therefore the starting point for everything else. Given a list of all feed information, you will not often want to see the exact path by which the information was gathered, but there are functions in the `openactive` package that break down the journey from the source collection if needed. So let's just start at the very beginning to be clear on how things work. First, let's define a printer function to give us a clear indented output display for what follows:
 
@@ -82,7 +82,7 @@ CALLING: https://openactive.io/data-catalogs/data-catalog-collection.jsonld
 ]
 ```
 
-Now for each of these catalogue URLs let's get the dataset URLs they contain, which should take a few seconds. Note that `get_dataset_urls` calls `get_catalogue_urls` internally:
+Now for each of these catalogue URLs let's get the dataset URLs they contain, which should take a few seconds. Note that `get_dataset_urls` calls `get_catalogue_urls` internally, the above was just for illustration of the process:
 
 ```
 Note: Output is truncated at 'etc.'
@@ -92,22 +92,18 @@ Note: Output is truncated at 'etc.'
 {
     "https://opendata.leisurecloud.live/api/datacatalog": [
         "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-        "https://brimhamsactive.gs-signature.cloud/OpenActive/",
         etc.
     ],
     "https://openactivedatacatalog.legendonlineservices.co.uk/api/DataCatalog": [
         "https://halo-openactive.legendonlineservices.co.uk/OpenActive",
-        "https://blackburnwithdarwen-openactive.legendonlineservices.co.uk/OpenActive",
         etc.
     ],
     "https://openactive.io/data-catalogs/singular.jsonld": [
         "http://data.better.org.uk/",
-        "https://data.bookwhen.com/",
         etc.
     ],
     "https://app.bookteq.com/api/openactive/catalogue": [
         "https://actihire.bookteq.com/api/open-active",
-        "https://awesomecic.bookteq.com/api/open-active",
         etc.
     ]
 }
@@ -115,7 +111,7 @@ Note: Output is truncated at 'etc.'
 
 We again see an output dictionary, with keys that are catalogue URLs and values that are lists of dataset URLs. The above output display is truncated, and you will see many more dataset URLs if you run the command yourself.
 
-Now for each of these dataset URLs let's get the feed information they contain, which should take about a minute. Note that `get_feeds` calls `get_dataset_urls` internally:
+Now for each of these dataset URLs let's get the feed information they contain, which should take a couple of minutes. Note that `get_feeds` calls `get_dataset_urls` internally, the above was just for illustration of the process:
 
 ```
 Note: Output is truncated at 'etc.'
@@ -147,15 +143,6 @@ ERROR: Can't get dataset: https://www.participant.co.uk/participant/openactive/
             "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
             "publisherName": "Active Leeds"
         },
-        {
-            "name": "Active Leeds Sessions and Facilities",
-            "type": "SessionSeries",
-            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series",
-            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Active Leeds"
-        },
         etc.
     ],
     "https://brimhamsactive.gs-signature.cloud/OpenActive/": [
@@ -168,28 +155,19 @@ ERROR: Can't get dataset: https://www.participant.co.uk/participant/openactive/
             "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
             "publisherName": "Brimhams Active"
         },
-        {
-            "name": "Brimhams Active Sessions and Facilities",
-            "type": "SessionSeries",
-            "url": "https://opendata.leisurecloud.live/api/feeds/BrimhamsActive-live-session-series",
-            "datasetUrl": "https://brimhamsactive.gs-signature.cloud/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Brimhams Active"
-        },
         etc.
     ],
     etc.
 }
 ```
 
-Once again we see an output dictionary, with keys that are dataset URLs and values that are lists of feed information dictionaries. The above output display is truncated, and you will see many more feed information dictionaries if you run the command yourself. Also note the warning messages in the above, which, as mentioned previously, occur if a URL cannot be correctly accessed due to some server or network issue. The `openactive` package will automatically retry a problematic URL up to 10 times with a 1 second wait time between tries, and these defaults can be overridden via the `num_tries_max` and `seconds_wait_retry` keywords, respectively. Additionally there is a default wait time of 0.2 seconds between subsequent URLs being called in a list even if no issue occurs, to ensure that servers aren't overburdened with a faster call rate, and this default can be overridden via the `seconds_wait_next` keyword. Any of these keywords can be given to any data gathering function and they will be passed through to other data gathering functions they call internally. So, for example, the `get_feeds` function could be called as follows, which will adjust the settings not only for the `get_feeds` function itself but also for the `get_dataset_urls` function and the `get_catalogue_urls` function which are internally called in a chain:
+Once again we see an output dictionary, with keys that are dataset URLs and values that are lists of feed information dictionaries. The above output display is truncated, and you will see many more feed information dictionaries if you run the command yourself. Also note the warning messages in the above, which, as mentioned previously, occur if a URL cannot be correctly accessed due to some issue. The `openactive` package will automatically retry a problematic URL up to 10 times with a 1 second wait time between tries, and these defaults can be overridden via the `num_tries_max` and `seconds_wait_retry` keywords, respectively. Additionally there is a default wait time of 0.2 seconds between subsequent URLs being called in a list even if no issue occurs, to ensure that servers aren't overburdened with an unrestricted call rate, and this default can be overridden via the `seconds_wait_next` keyword. Any of these keywords can be given to any data gathering function and they will be passed through to other data gathering functions they call internally. So, for example, the `get_feeds` function could be called as follows, which will adjust the settings not only for the `get_feeds` function itself but also for the `get_dataset_urls` function and the `get_catalogue_urls` function which are internally called in a chain:
 
 ```
->>> feeds = oa.get_feeds(num_tries_max=5, seconds_wait_retry=2, seconds_wait_next=0.4)
+>>> feeds = oa.get_feeds(seconds_wait_next=0.4, seconds_wait_retry=2, num_tries_max=5)
 ```
 
-The list of feed information is usually where you'll want to start your project work, but it's useful to be aware of the full journey above in getting to this point.
+The list of all feed information is usually where you'll want to start your project work, but it's useful to be aware of the full journey illustrated above in getting to this point.
 
 ## Get opportunities
 
@@ -205,46 +183,46 @@ Note: Output is truncated at 'etc.'
             "name": "Active Leeds Sessions and Facilities",
             "type": "CourseInstance",
             "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-course-instance",
-            "dataset_url": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussion_url": "",
-            "license_url": "https://creativecommons.org/licenses/by/4.0/",
-            "publisher_name": "Active Leeds"
+            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
+            "discussionUrl": "",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "publisherName": "Active Leeds"
         },
         {
             "name": "Active Leeds Sessions and Facilities",
             "type": "SessionSeries",
             "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series",
-            "dataset_url": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussion_url": "",
-            "license_url": "https://creativecommons.org/licenses/by/4.0/",
-            "publisher_name": "Active Leeds"
+            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
+            "discussionUrl": "",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "publisherName": "Active Leeds"
         },
         {
             "name": "Active Leeds Sessions and Facilities",
             "type": "ScheduledSession",
             "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions",
-            "dataset_url": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussion_url": "",
-            "license_url": "https://creativecommons.org/licenses/by/4.0/",
-            "publisher_name": "Active Leeds"
+            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
+            "discussionUrl": "",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "publisherName": "Active Leeds"
         },
         {
             "name": "Active Leeds Sessions and Facilities",
             "type": "FacilityUse",
             "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-facility-uses",
-            "dataset_url": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussion_url": "",
-            "license_url": "https://creativecommons.org/licenses/by/4.0/",
-            "publisher_name": "Active Leeds"
+            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
+            "discussionUrl": "",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "publisherName": "Active Leeds"
         },
         {
             "name": "Active Leeds Sessions and Facilities",
             "type": "Slot",
             "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-slots",
-            "dataset_url": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussion_url": "",
-            "license_url": "https://creativecommons.org/licenses/by/4.0/",
-            "publisher_name": "Active Leeds"
+            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
+            "discussionUrl": "",
+            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+            "publisherName": "Active Leeds"
         }
 
     ],
@@ -266,7 +244,7 @@ Extracting the feed starting URLs for this dataset, we have:
 ]
 ```
 
-To help automate workflows, there is a function called `get_partner_feed_url` in the `openactive` package that takes a single feed starting URL to find a partner for, and a list of feed starting URLs in which there may be a partner. It's a simple search-and-replace function using typical URL parts and their variants, such as swapping `session-series` or `sessionseries` for `scheduled-sessions` or `scheduledsessions`, until a match is found. If no match is found, then `None` is returned instead. Looping through the list of feed starting URLs for the above dataset, and using the full list as the set of matching options, we have:
+To help automate workflows, there is a function called `get_partner_feed_url` that takes a single feed starting URL to find a partner for, and a list of feed starting URLs in which there may be a partner. It's a simple search-and-replace function using typical URL parts and their variants, such as swapping `session-series` or `sessionseries` for `scheduled-sessions` or `scheduledsessions`, until a match is found. If no match is found, then `None` is returned instead. Looping through the list of feed starting URLs for the above dataset, and using the list itself as the set of matching options, we have:
 
 ```
 >>> for feed_url in feed_urls:
@@ -292,11 +270,11 @@ Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-facili
 
 The `course-instance` feed is the only standalone feed in this case, with the remaining four feeds being two pairs, namely the `session-series` super-event feed with the `scheduled-sessions` sub-event feed, and the `facility-uses` super-event feed with the `slots` sub-event feed. Note that it doesn't matter if the single feed starting URL provided to `get_partner_feed_url` is for a super-event feed or a sub-event feed, it will find whatever partner URL matches.
 
-Let's look at the paired `session-series` and `scheduled-sessions` feeds from the above dataset. As mentioned, a feed consists of a list of opportunity items split over a number of pages. Some items are in fact not live and are marked as deleted, and some items may supersede other items with more up-to-date values. To get all of the data for a given feed, we must visit each page one-by-one and retain only the most up-to-date live items, which is done automatically by the `get_opportunities` function. Note that the number of pages in a given feed is not known in advance, and so the time required to read all associated pages can vary greatly between one feed and another, from a few seconds to a few minutes. The `verbose` keyword may be particularly useful here to monitor progress. The feeds in this example should only take a few seconds each:
+Let's look at the paired `session-series` and `scheduled-sessions` feeds from the above dataset. As mentioned, a feed consists of a list of opportunity items split over a number of pages. Some items are in fact not live and are marked as deleted, and some items may supersede other items with more up-to-date values. To get all of the data for a given feed, we must visit each page one-by-one and retain only the most up-to-date live items, which is done by the `get_opportunities` function. Note that the number of pages in a given feed is not known in advance, and so the time required to read all associated pages can vary greatly between one feed and another, from a number of seconds to a number of minutes. The `verbose` keyword may be particularly useful here to monitor progress. The feeds in this example should only take a few seconds each:
 
 ```
->>> opportunities_super = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series')
->>> opportunities_sub = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions')
+>>> superevent_opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series')
+>>> subevent_opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions')
 ```
 
 For the super-event data we have:
@@ -304,7 +282,7 @@ For the super-event data we have:
 ```
 Note: Output is truncated at 'etc.'
 
->>> printer(opportunities_super)
+>>> printer(superevent_opportunities)
 {
     "items": {
         "HO1ONDL23501021": {
@@ -338,7 +316,7 @@ For the sub-event data we have:
 ```
 Note: Output is truncated at 'etc.'
 
->>> printer(opportunities_sub)
+>>> printer(subevent_opportunities)
 {
     "items": {
         "00000000000170005743": {
@@ -369,26 +347,26 @@ Note: Output is truncated at 'etc.'
 }
 ```
 
-The returned outputs are, once again, in dictionary form, and the main content of interest is found under the `items` key. The above output display is truncated, and you will see many more items if you run the command yourself. This output cannot be flattened via the `flat` keyword, as its structure is essential to maintain. All URLs that were visited in the feed chain are also returned in the output, as well as the "origin" component of the first URL, and the next URL to be visited when the feed is updated by the publisher, in order to continue the read at this point in the feed chain at a later time. To do this, which can also be done if we encounter an issue and only receive output from a partial read of the feed chain, we give the output dictionary to the function as argument rather than the feed starting URL. Using the super-event feed to illustrate, we would do:
+The returned outputs are, once again, in dictionary form, and the main content of interest is found under the `items` key. The above output display is truncated, and you will see many more items if you run the command yourself. This output cannot be flattened via the `flat` keyword, as its structure is essential to maintain for potential later use. All URLs that were visited in the feed chain are also returned in the output, as well as the first URL "origin" component, and the next URL to be visited when the feed is updated by the publisher, in order to continue the read at this point in the feed chain at a later time. To do this, which can also be done if we encounter an issue and only receive output from a partial read of the feed chain, we give the output dictionary to the function as argument rather than the feed starting URL. Using the super-event feed to illustrate, we would do:
 
 ```
->>> opportunities_super_new = oa.get_opportunities(opportunities_super)
+>>> superevent_opportunities_new = oa.get_opportunities(superevent_opportunities)
 ```
 
 ## Assess opportunities
 
-After obtaining a set of opportunity items, we can scan through all of them and count the various "kind" and "type" values that appear. Usually there is only one kind and one type, and usually these are the same as each other too, but there can be differences and this is useful to keep in mind. Let's take a look for the opportunities obtained above.
+After obtaining a set of opportunity items, we can scan through all of them and count the various "kind" and "type" values that appear, using the functions `get_item_kinds` and `get_item_data_types`. Usually there is only one kind and one type for a given feed, and usually these are the same as each other too, but there can be differences and this is useful to keep in mind. Let's take a look for the opportunities obtained above.
 
 For the super-event data we have:
 
 ```
->>> len(opportunities_super['items'].keys())
+>>> len(superevent_opportunities['items'].keys())
 916
->>> printer(oa.get_item_kinds(opportunities_super))
+>>> printer(oa.get_item_kinds(superevent_opportunities))
 {
     "SessionSeries": 916
 }
->>> printer(oa.get_item_data_types(opportunities_super))
+>>> printer(oa.get_item_data_types(superevent_opportunities))
 {
     "SessionSeries": 916
 }
@@ -397,19 +375,19 @@ For the super-event data we have:
 For the sub-event data we have:
 
 ```
->>> len(opportunities_sub['items'].keys())
+>>> len(subevent_opportunities['items'].keys())
 1476
->>> printer(oa.get_item_kinds(opportunities_sub))
+>>> printer(oa.get_item_kinds(subevent_opportunities))
 {
     "ScheduledSession": 1476
 }
->>> printer(oa.get_item_data_types(opportunities_sub))
+>>> printer(oa.get_item_data_types(subevent_opportunities))
 {
     "ScheduledSession": 1476
 }
 ```
 
-In this case, all 916 super-event items have a kind and a type of `SessionSeries`, and all 1476 sub-event items have a kind and a type of `ScheduledSession`. So it's safe to say that these are pure feeds of only one of the OpenActive data variants each, and we can treat them as such in further analysis.
+In this case, all 916 super-event items have a kind and a type of `SessionSeries`, and all 1476 sub-event items have a kind and a type of `ScheduledSession`. So it's safe to say that these are pure feeds of only one of the OpenActive data variants each, and we can treat them as such in further analysis. Note that you will likely see different values to the above if you're following through, as OpenActive feeds are dynamically changing.
 
 Even though we have commented that the `SessionSeries` feed is super-event data and the `ScheduledSession` feed is sub-event data, these judgements were made simply by observation and knowledge of the OpenActive data model. In order to automate an analysis that relies on knowing whether we're dealing with super-event data or sub-event data, the `get_event_type` function is useful. This takes an item kind or type label and returns `'superevent'`, `'subevent'` or `None`, accordingly:
 
@@ -423,10 +401,10 @@ Even though we have commented that the `SessionSeries` feed is super-event data 
 True
 ```
 
-Finally, let's look at the relationship between the items in a pair of super-event and sub-event feeds. For any given sub-event item, there will be a single related super-event item i.e. an individual class belongs to a series of classes. For any given super-event item, there will be a set of related sub-event items i.e. a series has a number of individual classes. The `openactive` package has the functions `get_superevents` and `get_subevents` to help with these two situations, respectively. Let's take a look at each in turn. First, let's observe a single sub-event item from the full list of sub-event items:
+Finally, let's look at the relationship between the items in a pair of super-event and sub-event feeds. For any single sub-event item, there will be a single related super-event item i.e. a single class belongs to a single series of classes. For any single super-event item, there will be a number of related sub-event items i.e. a single series of classes has a number of classes. The functions `get_superevents` and `get_subevents` help with these two situations, respectively. Let's take a look at each in turn. First, let's observe a single sub-event item from the full list of sub-event items:
 
 ```
->>> printer(list(opportunities_sub['items'].values())[0])
+>>> printer(list(subevent_opportunities['items'].values())[0])
 {
     "id": "00000000000170005743",
     "modified": 34213402,
@@ -459,20 +437,20 @@ Finally, let's look at the relationship between the items in a pair of super-eve
 Note that there is a field called "superEvent" in the above, the value of which contains what looks like a unique ID, namely "WE5CLKM10000723". We can see that this exists within the full list of super-event items:
 
 ```
->>> 'WE5CLKM10000723' in opportunities_super['items'].keys()
+>>> 'WE5CLKM10000723' in superevent_opportunities['items'].keys()
 True
 ```
 
-Now let's extract that super-event item itself, by giving the sub-event item and the full list of super-event items to `get_superevents`:
+Now let's select that super-event item itself, by giving the sub-event item and the full list of super-event items to `get_superevents`:
 
 ```
 Note: Output is truncated at 'etc.'
 
->>> superevents = oa.get_superevents(
-...     list(opportunities_sub['items'].values())[0],
-...     opportunities_super
+>>> superevent_opportunities_selection = oa.get_superevents(
+...     list(subevent_opportunities['items'].values())[0],
+...     superevent_opportunities
 ... )
->>> printer(superevents)
+>>> printer(superevent_opportunities_selection)
 [
     {
         "id": "WE5CLKM10000723",
@@ -508,16 +486,16 @@ Note: Output is truncated at 'etc.'
 ]
 ```
 
-Note that the super-event ID we identified in the sub-event item appears in both the "id" and "data:@id" fields of the super-event item itself. The unique part of "id" and "data:@id" should be the same for a given super-event item, and all super-event items should be different in this respect, so there should be only one super-event for a given sub-event, as mentioned. However, hypothetically this may not always be so in spurious cases, and the output from `get_superevents` is returned as a list which could contain more than one item if multiple matches are indeed found. It is worth checking that there is only one item in the list before any further analysis is done, and, if not, to establish exactly why not.
+Note that the super-event ID we identified in the sub-event item appears in both the "id" and "data:@id" fields of the super-event item itself. The unique part of "id" and "data:@id" should be the same for a given super-event item, and all super-event items should be different in this respect, so there should be only one super-event for a given sub-event, as mentioned. However, hypothetically this may not always be so in spurious cases, and the output from `get_superevents` is a list which could contain more than one item if multiple matches are indeed found. It is worth checking that there is only one item in the list before any further analysis is done, and, if not, then establishing exactly why not.
 
-Now let's go the other way around, from a given super-event item to a set of sub-event items. We can use the single super-event item as found above:
+Now let's go the other way around, from a given super-event item to a group of sub-event items. We can use the single super-event item as found above:
 
 ```
->>> subevents = oa.get_subevents(
-...     superevents[0],
-...     opportunities_sub
+>>> subevent_opportunities_selection = oa.get_subevents(
+...     superevent_opportunities_selection[0],
+...     subevent_opportunities
 ... )
->>> printer(subevents)
+>>> printer(subevent_opportunities_selection)
 [
     {
         "id": "00000000000170005743",
@@ -576,9 +554,9 @@ Now let's go the other way around, from a given super-event item to a set of sub
 ]
 ```
 
-We have a list of two sub-event items, one of which was the original input to `get_superevents`, as expected, and the other is the only other sub-event in the same series. In general, this list could contain many more items, but the above still provides a complete and compact full example.
+We have a list of two sub-event items, one of which was the original input to `get_superevents`, as expected, and the other is the only other sub-event in the same super-event series. Such a list could contain many more items, but the above provides a complete and compact full example.
 
-These functions for assessing opportunities are a good starting point for further analysis, providing the user with a set of tools to find basic but crucial information about feed content. The user can then more confidently work with that content, including automations that may depend on knowing the item kind or type, and whether or not those values indicate a pure super-event feed or sub-event feed.
+The functions for assessing opportunities described in this section are a good starting point for further analysis, providing the user with a set of tools to find basic but important information about feed content. The user can then more confidently work with that content, including automations that may depend on knowing the item kind or type, and whether or not those labels indicate a pure super-event feed or sub-event feed.
 
 ## Function summary
 
@@ -590,18 +568,18 @@ Function|Input|Output (not using `flat`)
 `get_dataset_urls`|-|dict: dataset URLs for each catalogue
 `get_feeds`|-|dict: feed info for each dataset
 `get_partner_feed_url`|str: `feed1_url`<br>and<br>[str]: [`feed2_url_options`]|str: `feed2_url` that best partners with `feed1_url`
-`get_opportunities`|str: `feed_url`<br>or<br>dict: `opportunities`|dict: `opportunities` info for a given `feed_url`
-`get_item_kinds`|dict: `opportunities`|dict: Item kinds and counts for a given set of `opportunities`
-`get_item_data_types`|dict: `opportunities`|dict: Item data types and counts for a given set of `opportunities`
+`get_opportunities`|str: `feed_url`<br>or<br>dict: `opportunities`|dict: `opportunities` info for a given feed
+`get_item_kinds`|dict: `opportunities`|dict: Item kinds and counts
+`get_item_data_types`|dict: `opportunities`|dict: Item data types and counts
 `get_event_type`|str: item kind<br>or<br>str: item data type|str: "superevent" or "subevent"<br>or<br>None
 `get_superevents`|dict: sub-event item<br>and<br>dict: super-event `opportunities`|[dict]: [super-event items]
 `get_subevents`|dict: super-event item<br>and<br>dict: sub-event `opportunities`|[dict]: [sub-event items]
 
 Additionally, the data gathering functions accept the following keywords:
 
-Function|`flat`<br>bool|`verbose`<br>bool|`num_tries_max`<br>int|`seconds_wait_retry`<br>num|`seconds_wait_next`<br>num
+Function|`flat`<br>bool|`verbose`<br>bool|`seconds_wait_next`<br>num|`seconds_wait_retry`<br>num|`num_tries_max`<br>int
 :---|:---|:---|:---|:---|:---
-`get_catalogue_urls`|&#10003;|&#10003;|&#10003;|&#10003;|&#10007;
+`get_catalogue_urls`|&#10003;|&#10003;|&#10007;|&#10003;|&#10003;
 `get_dataset_urls`|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;
 `get_feeds`|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;
 `get_opportunities`|&#10007;|&#10003;|&#10003;|&#10003;|&#10003;
@@ -631,5 +609,5 @@ Community and communications:
 - [Slack](https://slack.openactive.io/)
 - [LinkedIn](https://www.linkedin.com/company/openactiveio/)
 - [Twitter](https://twitter.com/openactiveio)
-- [YouTube](https://www.youtube.com/@openactive)
 - [Medium](https://openactiveio.medium.com/)
+- [YouTube](https://www.youtube.com/@openactive)
