@@ -1,5 +1,5 @@
 __author__ = 'Darren Temple'
-__version__ = '1.0.1'
+__version__ = '2.0.0'
 __copyright__ = 'Copyright (c) 2024 OpenActive'
 __license__ = 'MIT'
 

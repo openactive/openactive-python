@@ -4,7 +4,7 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'openactive'
-version = '1.0.1'
+version = '2.0.0'
 authors = [
   { name='Darren Temple', email='hello@openactive.io' },
 ]
@@ -29,4 +29,5 @@ dependencies = [
 
 [project.urls]
 Homepage = 'https://github.com/openactive/openactive-python'
+Changelog = 'https://github.com/openactive/openactive-python/blob/main/CHANGELOG.md'
 Issues = 'https://github.com/openactive/openactive-python/issues'
