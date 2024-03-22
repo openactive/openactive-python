@@ -14,7 +14,7 @@ authors = [
 license = { file='LICENSE' }
 readme = 'README.md'
 description = 'For reading feeds of sports and activity data published in the OpenActive format'
-keywords = ['sport', 'sports', 'activity', 'activities']
+keywords = ['activity', 'activities', 'sport', 'sports']
 classifiers = [
   'Programming Language :: Python :: 3',
   'License :: OSI Approved :: MIT License',

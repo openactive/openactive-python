@@ -1,4 +1,4 @@
 __pycache__/
 dist/
-src/
+src/openactive.egg-info/
 .DS_Store
