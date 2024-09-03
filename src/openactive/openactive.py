@@ -88,20 +88,26 @@ def try_requests(url, **kwargs):
 
 def get_catalogue_urls(**kwargs):
     flat = kwargs.get('flat', False)
+    preview = kwargs.get('preview', False)
     verbose = kwargs.get('verbose', False)
 
     catalogue_urls = {}
 
-    collection_url = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
+    if (not preview):
+        collection_url = 'https://openactive.io/data-catalogs/data-catalog-collection.jsonld'
+    else:
+        collection_url = 'https://openactive.io/data-catalogs/data-catalog-collection-preview.jsonld'
 
     if (verbose):
         print(stack()[0].function)
 
     try:
         collection_page, num_tries = try_requests(collection_url, **kwargs)
-        if (collection_page.status_code != 200):
+        if (collection_page is None):
             raise Exception()
-        if (any([type(i) != str for i in collection_page.json()['hasPart']])):
+        elif (collection_page.status_code != 200):
+            raise Exception()
+        elif (any([type(i) != str for i in collection_page.json()['hasPart']])):
             raise Exception()
         catalogue_urls[collection_url] = collection_page.json()['hasPart']
     except:
