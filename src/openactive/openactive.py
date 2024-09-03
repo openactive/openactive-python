@@ -38,35 +38,45 @@ session = requests.Session()
 # from requests.adapters import HTTPAdapter
 # from requests.packages.urllib3.util.retry import Retry
 # retry_strategy = Retry(
-#   total=3,
-#   backoff_factor=1
+#     total=3,
+#     backoff_factor=1
 # )
 # adapter = HTTPAdapter(max_retries=retry_strategy)
 # session.mount('https://', adapter)
 # session.mount('http://', adapter)
 
 def try_requests(url, **kwargs):
-    verbose = kwargs.get('verbose', False)
-    seconds_wait_retry = kwargs.get('seconds_wait_retry', 1)
+    headers = kwargs.get('headers', {'User-Agent': 'OpenActive user'})
     num_tries_max = kwargs.get('num_tries_max', 10)
+    seconds_wait_retry = kwargs.get('seconds_wait_retry', 1)
+    verbose = kwargs.get('verbose', False)
 
     r = None
     num_tries = 0
 
     while (True):
         if (num_tries == num_tries_max):
-            set_message('Max. tries ({}) reached for: {}'.format(num_tries_max, url), 'warning')
+            set_message(f'Max. tries ({num_tries_max}) reached for: {url}', 'warning')
             break
         elif (num_tries > 0):
-            set_message('Retrying ({}/{}): {}'.format(num_tries, num_tries_max-1, url), 'warning')
+            set_message(f'Retrying ({num_tries}/{num_tries_max-1}): {url}', 'warning')
             sleep(seconds_wait_retry)
         try:
             if (verbose):
                 set_message(url, 'calling')
             num_tries += 1
-            r = session.get(url)
-            if (r.status_code == 200):
-                break
+            r = session.get(url, headers=headers)
+            # https://docs.python-requests.org/en/latest/user/advanced/
+            # "Sessions can also be used as context managers [...] This will make sure the session is closed as
+            # soon as the with block is exited, even if unhandled exceptions occurred."
+            # r = None
+            # with requests.Session() as session:
+            #     r = session.get(url)
+            if (r is None):
+                raise Exception(f'{url}: Call failed with no response')
+            elif (r.status_code != 200):
+                raise Exception(f'{url}: Call failed with status code {r.status_code}')
+            break
         except Exception as error:
             set_message(str(error), 'error')
             # Continue otherwise we get kicked out of the while loop. This takes us to the top of the loop:
