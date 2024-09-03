@@ -156,8 +156,8 @@ def get_dataset_urls(**kwargs):
 
 def get_feeds(**kwargs):
     flat = kwargs.get('flat', False)
-    verbose = kwargs.get('verbose', False)
     seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
+    verbose = kwargs.get('verbose', False)
 
     feeds = {}
 
@@ -171,7 +171,9 @@ def get_feeds(**kwargs):
             if (dataset_url_idx != 0):
                 sleep(seconds_wait_next)
             dataset_page, num_tries = try_requests(dataset_url, **kwargs)
-            if (dataset_page.status_code != 200):
+            if (dataset_page is None):
+                raise Exception()
+            elif (dataset_page.status_code != 200):
                 raise Exception()
             soup = BeautifulSoup(dataset_page.text, 'html.parser')
             for script in soup.head.find_all('script'):
