@@ -122,8 +122,8 @@ def get_catalogue_urls(**kwargs):
 
 def get_dataset_urls(**kwargs):
     flat = kwargs.get('flat', False)
-    verbose = kwargs.get('verbose', False)
     seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
+    verbose = kwargs.get('verbose', False)
 
     dataset_urls = {}
 
@@ -137,9 +137,11 @@ def get_dataset_urls(**kwargs):
             if (catalogue_url_idx != 0):
                 sleep(seconds_wait_next)
             catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
-            if (catalogue_page.status_code != 200):
+            if (catalogue_page is None):
                 raise Exception()
-            if (any([type(i) != str for i in catalogue_page.json()['dataset']])):
+            elif (catalogue_page.status_code != 200):
+                raise Exception()
+            elif (any([type(i) != str for i in catalogue_page.json()['dataset']])):
                 raise Exception()
             dataset_urls[catalogue_url] = catalogue_page.json()['dataset']
         except:
