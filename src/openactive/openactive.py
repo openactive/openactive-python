@@ -2,14 +2,17 @@ import copy
 import json
 import requests
 from bs4 import BeautifulSoup
+from datetime import datetime
 from inspect import stack
 from itertools import chain
+from sys import getsizeof
 from termcolor import colored
 from time import sleep
 from urllib.parse import unquote, urlparse
 
 # --------------------------------------------------------------------------------------------------
 
+SECONDS_TIMEOUT_DEFAULT = 600
 SECONDS_WAIT_NEXT_DEFAULT = 0.2
 
 # --------------------------------------------------------------------------------------------------
@@ -290,22 +293,26 @@ def get_partner_feed_url(feed1_url, feed2_url_options):
 
 # --------------------------------------------------------------------------------------------------
 
-# This is a recursive function. On the first call the opportunities dictionary will be empty and so
-# will be initialised. On subsequent automated internal calls it will have content to be added to.
-# Also, if a call fails for some reason when running in some other code (i.e. when not running on a
-# server), then the returned dictionary can be manually resubmitted as the argument instead of a starting
-# URL string, and the code will continue from the 'nextUrl' in the dictionary.
+# On the first call to this function the opportunities dictionary will be empty and so will be initialised.
+# On subsequent automated internal calls to the helper function, the opportunities dictionary will
+# already exist and have content to be added to. If a call fails for some reason when running in some
+# other code (i.e. when not running on a server), then the returned dictionary can be manually resubmitted
+# as the argument instead of a starting URL string, and the code will continue from the 'nextUrl' in
+# the opportunities dictionary.
 
 opportunities_template = {
     'items': {},
     'urls': [],
     'firstUrlOrigin': '',
     'nextUrl': '',
+    'status': '',
 }
 
 def get_opportunities(arg, **kwargs):
-    verbose = kwargs.get('verbose', False)
+    log_memory = kwargs.get('log_memory', False)
+    seconds_timeout = kwargs.get('seconds_timeout', SECONDS_TIMEOUT_DEFAULT)
     seconds_wait_next = kwargs.get('seconds_wait_next', SECONDS_WAIT_NEXT_DEFAULT)
+    verbose = kwargs.get('verbose', False)
 
     if (    (verbose)
         and (stack()[0].function != stack()[1].function)
@@ -319,52 +326,115 @@ def get_opportunities(arg, **kwargs):
         opportunities = copy.deepcopy(opportunities_template)
         opportunities['nextUrl'] = get_opportunities_next_url(arg, opportunities)
     elif (type(arg) == dict):
-        if (    (sorted(arg.keys()) != sorted(opportunities_template.keys()))
-            or  (any([type(arg[key]) != type(opportunities_template[key]) for key in arg.keys()]))
+        # Note that we allow for extra keys in the incoming opportunities dictionary which aren't in the template,
+        # in case the user has added custom fields. These don't affect the processing herein, and so aren't
+        # restricted:
+        if (    (any([((key not in arg.keys()) or (type(arg[key]) != type(opportunities_template[key]))) for key in opportunities_template.keys()]))
             or  (len(arg['firstUrlOrigin']) == 0)
             or  (len(arg['nextUrl']) == 0)
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
             return
         opportunities = arg
+        opportunities['status'] = ''
     else:
         set_message('Invalid input, must be a feed URL string or an opportunities dictionary', 'warning')
         return
 
-    try:
-        feed_url = opportunities['nextUrl']
-        feed_page, num_tries = try_requests(feed_url, **kwargs)
-        if (feed_page.status_code != 200):
-            raise Exception()
-        for item in feed_page.json()['items']:
-            if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
-                if (item['state'] == 'updated'):
-                    if (    (item['id'] not in opportunities['items'].keys())
-                        or  (item['modified'] > opportunities['items'][item['id']]['modified'])
-                    ):
-                        opportunities['items'][item['id']] = item
-                elif (  (item['state'] == 'deleted')
-                    and (item['id'] in opportunities['items'].keys())
-                ):
-                    del(opportunities['items'][item['id']])
-        if (    ('next' in feed_page.json().keys())
-            and (type(feed_page.json()['next']) == str)
-            and (len(feed_page.json()['next']) > 0)
-        ):
-            opportunities['nextUrl'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
-        else:
-            opportunities['nextUrl'] = ''
-        if (opportunities['nextUrl'] != feed_url):
-            opportunities['urls'].append(feed_url)
-        if (    (opportunities['nextUrl'])
-            and (opportunities['nextUrl'] != feed_url)
-        ):
-            sleep(seconds_wait_next)
-            opportunities = get_opportunities(opportunities, **kwargs)
-    except:
-        set_message('Can\'t get feed: {}'.format(feed_url), 'error')
+    if (log_memory):
+        sum_item_bytesize_deltas = 0
 
-    return opportunities
+    try:
+        time_start = datetime.now()
+
+        get_opportunities_helper_done = False
+
+        while (True):
+            feed_url = opportunities['nextUrl']
+
+            if (log_memory):
+                opportunities, get_opportunities_helper_done, sum_item_bytesize_deltas_current = get_opportunities_helper(opportunities, **kwargs)
+                sum_item_bytesize_deltas += sum_item_bytesize_deltas_current
+            else:
+                opportunities, get_opportunities_helper_done = get_opportunities_helper(opportunities, **kwargs)
+
+            if (get_opportunities_helper_done):
+                opportunities['status'] = 'COMPLETE'
+                break
+            elif ((datetime.now() - time_start).seconds >= seconds_timeout):
+                opportunities['status'] = 'TIMEOUT'
+                break
+            else:
+                sleep(seconds_wait_next)
+
+    except:
+        opportunities['status'] = 'ERROR'
+        set_message(f'Issue encountered when getting feed: {feed_url}', 'error')
+
+    if (log_memory):
+        return opportunities, sum_item_bytesize_deltas
+    else:
+        return opportunities
+
+# --------------------------------------------------------------------------------------------------
+
+def get_opportunities_helper(opportunities, **kwargs):
+    log_memory = kwargs.get('log_memory', False)
+    verbose = kwargs.get('verbose', False)
+
+    feed_url = opportunities['nextUrl']
+    feed_page, num_tries = try_requests(feed_url, **kwargs)
+
+    if (    (feed_page is None)
+        or  (feed_page.status_code != 200)
+    ):
+        raise Exception()
+
+    if (log_memory):
+        sum_item_bytesize_deltas = 0
+
+    for item in feed_page.json()['items']:
+        if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
+            if (log_memory):
+                item_bytesize_delta = 0
+            if (item['state'] == 'updated'):
+                if (    (item['id'] not in opportunities['items'].keys())
+                    or  (item['modified'] > opportunities['items'][item['id']]['modified'])
+                ):
+                    if (log_memory):
+                        item_bytesize_old = get_bytesize(opportunities['items'][item['id']]) if (item['id'] in opportunities['items'].keys()) else 0
+                        item_bytesize_new = get_bytesize(item)
+                        item_bytesize_delta = item_bytesize_new - item_bytesize_old
+                    opportunities['items'][item['id']] = item
+            elif (  (item['state'] == 'deleted')
+                and (item['id'] in opportunities['items'].keys())
+            ):
+                if (log_memory):
+                    item_bytesize_delta = -get_bytesize(opportunities['items'][item['id']])
+                del(opportunities['items'][item['id']])
+
+            if (log_memory):
+                sum_item_bytesize_deltas += item_bytesize_delta
+                if (verbose):
+                    print(f"Item ID: {item['id']}; Item bytesize delta: {item_bytesize_delta}; Sum of item bytesize deltas: {sum_item_bytesize_deltas}")
+
+    if (    ('next' in feed_page.json().keys())
+        and (type(feed_page.json()['next']) == str)
+        and (len(feed_page.json()['next']) > 0)
+    ):
+        opportunities['nextUrl'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
+    else:
+        opportunities['nextUrl'] = ''
+
+    if (opportunities['nextUrl'] != feed_url):
+        opportunities['urls'].append(feed_url)
+
+    get_opportunities_helper_done = opportunities['nextUrl'] in [feed_url, '']
+
+    if (log_memory):
+        return opportunities, get_opportunities_helper_done, sum_item_bytesize_deltas
+    else:
+        return opportunities, get_opportunities_helper_done
 
 # --------------------------------------------------------------------------------------------------
 
@@ -390,6 +460,20 @@ def get_opportunities_next_url(next_url_original, opportunities):
             next_url += ('?' if (next_url_original_parsed.query[0] != '?') else '') + next_url_original_parsed.query
 
     return next_url
+
+# --------------------------------------------------------------------------------------------------
+
+def get_bytesize(arg):
+    bytesize = 0
+
+    if (type(arg) == list):
+        bytesize = sum([get_bytesize(val) for val in arg])
+    elif (type(arg) == dict):
+        bytesize = sum([get_bytesize(val) for val in arg.values()])
+    else:
+        bytesize = getsizeof(arg)
+
+    return bytesize
 
 # --------------------------------------------------------------------------------------------------
 
