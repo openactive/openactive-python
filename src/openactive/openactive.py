@@ -133,14 +133,14 @@ def get_dataset_urls(**kwargs):
 
     for catalogue_url_idx, catalogue_url in enumerate(catalogue_urls):
         try:
-            if (catalogue_url_idx != 0):
-                sleep(seconds_wait_next)
             catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
             if (any([type(i) != str for i in catalogue_page.json()['dataset']])):
                 raise Exception()
             dataset_urls[catalogue_url] = catalogue_page.json()['dataset']
         except:
             set_message(f'Can\'t get catalogue: {catalogue_url}', 'error')
+        if (catalogue_url_idx < (len(catalogue_urls)-1)):
+            sleep(seconds_wait_next)
 
     if (not flat):
         return dataset_urls
@@ -163,8 +163,6 @@ def get_feeds(**kwargs):
 
     for dataset_url_idx, dataset_url in enumerate(dataset_urls):
         try:
-            if (dataset_url_idx != 0):
-                sleep(seconds_wait_next)
             dataset_page, num_tries = try_requests(dataset_url, **kwargs)
             soup = BeautifulSoup(dataset_page.text, 'html.parser')
             for script in soup.head.find_all('script'):
@@ -210,6 +208,8 @@ def get_feeds(**kwargs):
                             feeds[dataset_url].append(feed_out)
         except:
             set_message(f'Can\'t get dataset: {dataset_url}', 'error')
+        if (dataset_url_idx < (len(dataset_urls)-1)):
+            sleep(seconds_wait_next)
 
     if (not flat):
         return feeds
