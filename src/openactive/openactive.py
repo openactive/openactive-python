@@ -114,7 +114,7 @@ def get_catalogue_urls(**kwargs):
             raise Exception()
         catalogue_urls[collection_url] = collection_page.json()['hasPart']
     except:
-        set_message('Can\'t get collection: {}'.format(collection_url), 'error')
+        set_message(f'Can\'t get collection: {collection_url}', 'error')
 
     if (not flat):
         return catalogue_urls
@@ -148,7 +148,7 @@ def get_dataset_urls(**kwargs):
                 raise Exception()
             dataset_urls[catalogue_url] = catalogue_page.json()['dataset']
         except:
-            set_message('Can\'t get catalogue: {}'.format(catalogue_url), 'error')
+            set_message(f'Can\'t get catalogue: {catalogue_url}', 'error')
 
     if (not flat):
         return dataset_urls
@@ -221,7 +221,7 @@ def get_feeds(**kwargs):
                                 feeds[dataset_url] = []
                             feeds[dataset_url].append(feed_out)
         except:
-            set_message('Can\'t get dataset: {}'.format(dataset_url), 'error')
+            set_message(f'Can\'t get dataset: {dataset_url}', 'error')
 
     if (not flat):
         return feeds
