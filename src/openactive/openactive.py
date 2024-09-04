@@ -106,11 +106,7 @@ def get_catalogue_urls(**kwargs):
 
     try:
         collection_page, num_tries = try_requests(collection_url, **kwargs)
-        if (collection_page is None):
-            raise Exception()
-        elif (collection_page.status_code != 200):
-            raise Exception()
-        elif (any([type(i) != str for i in collection_page.json()['hasPart']])):
+        if (any([type(i) != str for i in collection_page.json()['hasPart']])):
             raise Exception()
         catalogue_urls[collection_url] = collection_page.json()['hasPart']
     except:
@@ -135,16 +131,12 @@ def get_dataset_urls(**kwargs):
     if (verbose):
         print(stack()[0].function)
 
-    for catalogue_url_idx,catalogue_url in enumerate(catalogue_urls):
+    for catalogue_url_idx, catalogue_url in enumerate(catalogue_urls):
         try:
             if (catalogue_url_idx != 0):
                 sleep(seconds_wait_next)
             catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
-            if (catalogue_page is None):
-                raise Exception()
-            elif (catalogue_page.status_code != 200):
-                raise Exception()
-            elif (any([type(i) != str for i in catalogue_page.json()['dataset']])):
+            if (any([type(i) != str for i in catalogue_page.json()['dataset']])):
                 raise Exception()
             dataset_urls[catalogue_url] = catalogue_page.json()['dataset']
         except:
@@ -169,15 +161,11 @@ def get_feeds(**kwargs):
     if (verbose):
         print(stack()[0].function)
 
-    for dataset_url_idx,dataset_url in enumerate(dataset_urls):
+    for dataset_url_idx, dataset_url in enumerate(dataset_urls):
         try:
             if (dataset_url_idx != 0):
                 sleep(seconds_wait_next)
             dataset_page, num_tries = try_requests(dataset_url, **kwargs)
-            if (dataset_page is None):
-                raise Exception()
-            elif (dataset_page.status_code != 200):
-                raise Exception()
             soup = BeautifulSoup(dataset_page.text, 'html.parser')
             for script in soup.head.find_all('script'):
                 if (    ('type' in script.attrs.keys())
@@ -369,7 +357,7 @@ def get_opportunities(arg, **kwargs):
 
     except:
         opportunities['status'] = 'ERROR'
-        set_message(f'Issue encountered when getting feed: {feed_url}', 'error')
+        set_message(f'Can\'t get feed: {feed_url}', 'error')
 
     if (log_memory):
         return opportunities, sum_item_bytesize_deltas
@@ -384,11 +372,6 @@ def get_opportunities_helper(opportunities, **kwargs):
 
     feed_url = opportunities['nextUrl']
     feed_page, num_tries = try_requests(feed_url, **kwargs)
-
-    if (    (feed_page is None)
-        or  (feed_page.status_code != 200)
-    ):
-        raise Exception()
 
     if (log_memory):
         sum_item_bytesize_deltas = 0
