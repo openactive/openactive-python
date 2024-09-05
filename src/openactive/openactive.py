@@ -262,7 +262,7 @@ feed_url_parts_type_map = {
 def get_partner_feed_url(feed1_url, feed2_url_options):
     feed2_url = None
 
-    for feed1_url_parts_type,feed1_url_parts in feed_url_parts_groups.items():
+    for feed1_url_parts_type, feed1_url_parts in feed_url_parts_groups.items():
         for feed1_url_part in feed1_url_parts:
             if (feed1_url_part in feed1_url):
                 feed2_url_parts_type = feed_url_parts_type_map[feed1_url_parts_type]
@@ -330,7 +330,7 @@ def get_opportunities(arg, **kwargs):
         return
 
     if (log_memory):
-        sum_item_bytesize_deltas = 0
+        sum_bytesize_item_deltas = 0
 
     try:
         time_start = datetime.now()
@@ -341,8 +341,8 @@ def get_opportunities(arg, **kwargs):
             feed_url = opportunities['nextUrl']
 
             if (log_memory):
-                opportunities, get_opportunities_helper_done, sum_item_bytesize_deltas_current = get_opportunities_helper(opportunities, **kwargs)
-                sum_item_bytesize_deltas += sum_item_bytesize_deltas_current
+                opportunities, get_opportunities_helper_done, sum_bytesize_item_deltas_current = get_opportunities_helper(opportunities, **kwargs)
+                sum_bytesize_item_deltas += sum_bytesize_item_deltas_current
             else:
                 opportunities, get_opportunities_helper_done = get_opportunities_helper(opportunities, **kwargs)
 
@@ -360,7 +360,7 @@ def get_opportunities(arg, **kwargs):
         set_message(f'Can\'t get feed: {feed_url}', 'error')
 
     if (log_memory):
-        return opportunities, sum_item_bytesize_deltas
+        return opportunities, sum_bytesize_item_deltas
     else:
         return opportunities
 
@@ -374,32 +374,32 @@ def get_opportunities_helper(opportunities, **kwargs):
     feed_page, num_tries = try_requests(feed_url, **kwargs)
 
     if (log_memory):
-        sum_item_bytesize_deltas = 0
+        sum_bytesize_item_deltas = 0
 
     for item in feed_page.json()['items']:
         if (all([key in item.keys() for key in ['id', 'state', 'modified']])):
             if (log_memory):
-                item_bytesize_delta = 0
+                bytesize_item_delta = 0
             if (item['state'] == 'updated'):
                 if (    (item['id'] not in opportunities['items'].keys())
                     or  (item['modified'] > opportunities['items'][item['id']]['modified'])
                 ):
                     if (log_memory):
-                        item_bytesize_old = get_bytesize(opportunities['items'][item['id']]) if (item['id'] in opportunities['items'].keys()) else 0
-                        item_bytesize_new = get_bytesize(item)
-                        item_bytesize_delta = item_bytesize_new - item_bytesize_old
+                        bytesize_item_old = get_bytesize(opportunities['items'][item['id']]) if (item['id'] in opportunities['items'].keys()) else 0
+                        bytesize_item_new = get_bytesize(item)
+                        bytesize_item_delta = bytesize_item_new - bytesize_item_old
                     opportunities['items'][item['id']] = item
             elif (  (item['state'] == 'deleted')
                 and (item['id'] in opportunities['items'].keys())
             ):
                 if (log_memory):
-                    item_bytesize_delta = -get_bytesize(opportunities['items'][item['id']])
+                    bytesize_item_delta = -get_bytesize(opportunities['items'][item['id']])
                 del(opportunities['items'][item['id']])
 
             if (log_memory):
-                sum_item_bytesize_deltas += item_bytesize_delta
+                sum_bytesize_item_deltas += bytesize_item_delta
                 if (verbose):
-                    print(f"Item ID: {item['id']}; Item bytesize delta: {item_bytesize_delta}; Sum of item bytesize deltas: {sum_item_bytesize_deltas}")
+                    print(f"Item ID: {item['id']}; Bytesize item delta: {bytesize_item_delta}; Sum of bytesize item deltas: {sum_bytesize_item_deltas}")
 
     if (    ('next' in feed_page.json().keys())
         and (type(feed_page.json()['next']) == str)
@@ -415,7 +415,7 @@ def get_opportunities_helper(opportunities, **kwargs):
     get_opportunities_helper_done = opportunities['nextUrl'] in [feed_url, '']
 
     if (log_memory):
-        return opportunities, get_opportunities_helper_done, sum_item_bytesize_deltas
+        return opportunities, get_opportunities_helper_done, sum_bytesize_item_deltas
     else:
         return opportunities, get_opportunities_helper_done
 
