@@ -67,18 +67,22 @@ def try_requests(url, **kwargs):
         try:
             if (verbose):
                 set_message(url, 'calling')
+
             num_tries += 1
             r = session.get(url, headers=headers)
+
             # https://docs.python-requests.org/en/latest/user/advanced/
             # "Sessions can also be used as context managers [...] This will make sure the session is closed as
             # soon as the with block is exited, even if unhandled exceptions occurred."
             # r = None
             # with requests.Session() as session:
             #     r = session.get(url)
+
             if (r is None):
                 raise Exception(f'{url}: Call failed with no response')
             elif (r.status_code != 200):
                 raise Exception(f'{url}: Call failed with status code {r.status_code}')
+
             break
         except Exception as error:
             set_message(str(error), 'error')
@@ -106,8 +110,13 @@ def get_catalogue_urls(**kwargs):
 
     try:
         collection_page, num_tries = try_requests(collection_url, **kwargs)
-        if (any([type(i) != str for i in collection_page.json()['hasPart']])):
+
+        if (    (collection_page is None)
+            or  (collection_page.status != 200)
+            or  (any([type(i) != str for i in collection_page.json()['hasPart']]))
+        ):
             raise Exception()
+
         catalogue_urls[collection_url] = collection_page.json()['hasPart']
     except:
         set_message(f'Can\'t get collection: {collection_url}', 'error')
@@ -134,8 +143,13 @@ def get_dataset_urls(**kwargs):
     for catalogue_url_idx, catalogue_url in enumerate(catalogue_urls):
         try:
             catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
-            if (any([type(i) != str for i in catalogue_page.json()['dataset']])):
+
+            if (    (catalogue_page is None)
+                or  (catalogue_page.status != 200)
+                or  (any([type(i) != str for i in catalogue_page.json()['dataset']]))
+            ):
                 raise Exception()
+
             dataset_urls[catalogue_url] = catalogue_page.json()['dataset']
         except:
             set_message(f'Can\'t get catalogue: {catalogue_url}', 'error')
@@ -164,6 +178,12 @@ def get_feeds(**kwargs):
     for dataset_url_idx, dataset_url in enumerate(dataset_urls):
         try:
             dataset_page, num_tries = try_requests(dataset_url, **kwargs)
+
+            if (    (dataset_page is None)
+                or  (dataset_page.status != 200)
+            ):
+                raise Exception()
+
             soup = BeautifulSoup(dataset_page.text, 'html.parser')
             for script in soup.head.find_all('script'):
                 if (    ('type' in script.attrs.keys())
@@ -372,6 +392,11 @@ def get_opportunities_helper(opportunities, **kwargs):
 
     feed_url = opportunities['nextUrl']
     feed_page, num_tries = try_requests(feed_url, **kwargs)
+
+    if (    (feed_page is None)
+        or  (feed_page.status != 200)
+    ):
+        raise Exception()
 
     if (log_memory):
         sum_bytesize_item_deltas = 0
