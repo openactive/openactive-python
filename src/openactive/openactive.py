@@ -112,7 +112,7 @@ def get_catalogue_urls(**kwargs):
         collection_page, num_tries = try_requests(collection_url, **kwargs)
 
         if (    (collection_page is None)
-            or  (collection_page.status != 200)
+            or  (collection_page.status_code != 200)
             or  (any([type(i) != str for i in collection_page.json()['hasPart']]))
         ):
             raise Exception()
@@ -145,7 +145,7 @@ def get_dataset_urls(**kwargs):
             catalogue_page, num_tries = try_requests(catalogue_url, **kwargs)
 
             if (    (catalogue_page is None)
-                or  (catalogue_page.status != 200)
+                or  (catalogue_page.status_code != 200)
                 or  (any([type(i) != str for i in catalogue_page.json()['dataset']]))
             ):
                 raise Exception()
@@ -180,7 +180,7 @@ def get_feeds(**kwargs):
             dataset_page, num_tries = try_requests(dataset_url, **kwargs)
 
             if (    (dataset_page is None)
-                or  (dataset_page.status != 200)
+                or  (dataset_page.status_code != 200)
             ):
                 raise Exception()
 
@@ -394,7 +394,7 @@ def get_opportunities_helper(opportunities, **kwargs):
     feed_page, num_tries = try_requests(feed_url, **kwargs)
 
     if (    (feed_page is None)
-        or  (feed_page.status != 200)
+        or  (feed_page.status_code != 200)
     ):
         raise Exception()
 
