@@ -548,64 +548,66 @@ def get_event_type(label):
 
 # --------------------------------------------------------------------------------------------------
 
-def get_superevents(subevent, superevent_opportunities):
+def get_superevents(subevent, superevent_opportunities, superevent_ids_skip):
     superevents = []
 
-    superevent_id_in_subevent = get_superevent_id_in_subevent(subevent)
+    superevent_id_mod_in_subevent = get_superevent_id_mod_in_subevent(subevent)
 
-    if (superevent_id_in_subevent is not None):
-        for superevent in superevent_opportunities['items'].values():
-            superevent_id, superevent_data_id = get_superevent_ids(superevent)
-            if (superevent_id_in_subevent in [superevent_id, superevent_data_id]):
-                superevents.append(superevent)
+    if (superevent_id_mod_in_subevent is not None):
+        for superevent_id, superevent in superevent_opportunities['items'].items():
+            if (superevent_id not in superevent_ids_skip):
+                superevent_id_mod, superevent_data_id_mod = get_superevent_ids_mod(superevent)
+                if (superevent_id_mod_in_subevent in [superevent_id_mod, superevent_data_id_mod]):
+                    superevents.append(superevent)
 
     return superevents
 
 # --------------------------------------------------------------------------------------------------
 
-def get_subevents(superevent, subevent_opportunities):
+def get_subevents(superevent, subevent_opportunities, subevent_ids_skip):
     subevents = []
 
-    superevent_id, superevent_data_id = get_superevent_ids(superevent)
+    superevent_id_mod, superevent_data_id_mod = get_superevent_ids_mod(superevent)
 
-    if (    (superevent_id is not None)
-        or  (superevent_data_id is not None)
+    if (    (superevent_id_mod is not None)
+        or  (superevent_data_id_mod is not None)
     ):
-        for subevent in subevent_opportunities['items'].values():
-            superevent_id_in_subevent = get_superevent_id_in_subevent(subevent)
-            if (    (superevent_id_in_subevent is not None)
-                and (superevent_id_in_subevent in [superevent_id, superevent_data_id])
-            ):
-                subevents.append(subevent)
+        for subevent_id, subevent in subevent_opportunities['items'].items():
+            if (subevent_id not in subevent_ids_skip):
+                superevent_id_mod_in_subevent = get_superevent_id_mod_in_subevent(subevent)
+                if (    (superevent_id_mod_in_subevent is not None)
+                    and (superevent_id_mod_in_subevent in [superevent_id_mod, superevent_data_id_mod])
+                ):
+                    subevents.append(subevent)
 
     return subevents
 
 # --------------------------------------------------------------------------------------------------
 
-def get_superevent_id_in_subevent(subevent):
-    superevent_id_in_subevent = None
+def get_superevent_id_mod_in_subevent(subevent):
+    superevent_id_mod_in_subevent = None
 
     if ('data' in subevent.keys()):
         for key in ['superEvent', 'facilityUse']:
             if (    (key in subevent['data'].keys())
                 and (type(subevent['data'][key]) in [str, int])
             ):
-                superevent_id_in_subevent = str(subevent['data'][key]).split('/')[-1]
+                superevent_id_mod_in_subevent = str(subevent['data'][key]).split('/')[-1]
                 break
 
-    return superevent_id_in_subevent
+    return superevent_id_mod_in_subevent
 
 # --------------------------------------------------------------------------------------------------
 
-def get_superevent_ids(superevent):
-    superevent_id = None
-    superevent_data_id = None
+def get_superevent_ids_mod(superevent):
+    superevent_id_mod = None
+    superevent_data_id_mod = None
 
     for key in ['id', '@id']:
         if (    (key in superevent.keys())
             and (type(superevent[key]) in [str, int])
         ):
-            superevent_id = str(superevent[key]).split('/')[-1]
+            superevent_id_mod = str(superevent[key]).split('/')[-1]
             break
 
     if ('data' in superevent.keys()):
@@ -613,7 +615,7 @@ def get_superevent_ids(superevent):
             if (    (key in superevent['data'].keys())
                 and (type(superevent['data'][key]) in [str, int])
             ):
-                superevent_data_id = str(superevent['data'][key]).split('/')[-1]
+                superevent_data_id_mod = str(superevent['data'][key]).split('/')[-1]
                 break
 
-    return superevent_id, superevent_data_id
+    return superevent_id_mod, superevent_data_id_mod
