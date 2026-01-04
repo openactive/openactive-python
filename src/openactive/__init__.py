@@ -1,6 +1,6 @@
 __author__ = 'Darren Temple'
 __version__ = '2.0.0'
-__copyright__ = 'Copyright (c) 2024 OpenActive'
+__copyright__ = 'Copyright (c) 2026 OpenActive'
 __license__ = 'MIT'
 
 from .openactive import (
