@@ -195,10 +195,6 @@ def get_feeds(**kwargs):
                             feed_out = {}
 
                             try:
-                                feed_out['name'] = jsonld['name']
-                            except:
-                                feed_out['name'] = ''
-                            try:
                                 feed_out['type'] = feed_in['name']
                             except:
                                 feed_out['type'] = ''
@@ -206,6 +202,10 @@ def get_feeds(**kwargs):
                                 feed_out['url'] = feed_in['contentUrl']
                             except:
                                 feed_out['url'] = ''
+                            try:
+                                feed_out['dataset_name'] = jsonld['name']
+                            except:
+                                feed_out['dataset_name'] = ''
                             try:
                                 feed_out['dataset_url'] = dataset_url
                             except:
