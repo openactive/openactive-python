@@ -511,11 +511,15 @@ def get_item_kinds(opportunities):
     item_kinds = {}
 
     for item in opportunities['items'].values():
+        item_kind = None
+
         if ('kind' in item.keys()):
-            if (item['kind'] not in item_kinds.keys()):
-                item_kinds[item['kind']] = 1
-            else:
-                item_kinds[item['kind']] += 1
+            item_kind = item['kind']
+
+        if (item_kind not in item_kinds.keys()):
+            item_kinds[item_kind] = 1
+        else:
+            item_kinds[item_kind] += 1
 
     return item_kinds
 
@@ -525,14 +529,18 @@ def get_item_data_types(opportunities):
     item_data_types = {}
 
     for item in opportunities['items'].values():
+        item_data_type = None
+
         if ('data' in item.keys()):
-            for key in ['type', '@type']:
-                if (key in item['data'].keys()):
-                    if (item['data'][key] not in item_data_types.keys()):
-                        item_data_types[item['data'][key]] = 1
-                    else:
-                        item_data_types[item['data'][key]] += 1
-                    break
+            if ('type' in item['data'].keys()):
+                item_data_type = item['data']['type']
+            elif ('@type' in item['data'].keys()):
+                item_data_type = item['data']['@type']
+
+        if (item_data_type not in item_data_types.keys()):
+            item_data_types[item_data_type] = 1
+        else:
+            item_data_types[item_data_type] += 1
 
     return item_data_types
 
