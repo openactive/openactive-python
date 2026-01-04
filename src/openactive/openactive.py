@@ -346,7 +346,10 @@ def get_opportunities(arg, **kwargs):
     if (type(arg) == str):
         if (len(arg) == 0):
             set_message('Invalid input, feed URL must be a string of non-zero length', 'warning')
-            return
+            if (log_memory):
+                return None, 0
+            else:
+                return None
         opportunities = copy.deepcopy(opportunities_template)
         opportunities['nextUrl'] = get_opportunities_next_url(arg, opportunities)
     elif (type(arg) == dict):
@@ -358,21 +361,24 @@ def get_opportunities(arg, **kwargs):
             or  (len(arg['nextUrl']) == 0)
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
-            return
+            if (log_memory):
+                return None, 0
+            else:
+                return None
         opportunities = arg
-        opportunities['status'] = ''
+        opportunities['status'] = opportunities_template['status']
     else:
         set_message('Invalid input, must be a feed URL string or an opportunities dictionary', 'warning')
-        return
+        if (log_memory):
+            return None, 0
+        else:
+            return None
 
     if (log_memory):
         sum_bytesize_item_deltas = 0
 
     try:
         time_start = datetime.now()
-
-        get_opportunities_helper_done = False
-
         while (True):
             feed_url = opportunities['nextUrl']
 
