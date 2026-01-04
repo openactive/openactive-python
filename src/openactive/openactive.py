@@ -207,25 +207,25 @@ def get_feeds(**kwargs):
                             except:
                                 feed_out['url'] = ''
                             try:
-                                feed_out['datasetUrl'] = dataset_url
+                                feed_out['dataset_url'] = dataset_url
                             except:
-                                feed_out['datasetUrl'] = ''
+                                feed_out['dataset_url'] = ''
                             try:
-                                feed_out['discussionUrl'] = jsonld['discussionUrl']
+                                feed_out['discussion_url'] = jsonld['discussionUrl']
                             except:
-                                feed_out['discussionUrl'] = ''
+                                feed_out['discussion_url'] = ''
                             try:
-                                feed_out['licenseUrl'] = jsonld['license']
+                                feed_out['license_url'] = jsonld['license']
                             except:
-                                feed_out['licenseUrl'] = ''
+                                feed_out['license_url'] = ''
                             try:
-                                feed_out['logoUrl'] = jsonld['publisher']['logo']['url']
+                                feed_out['logo_url'] = jsonld['publisher']['logo']['url']
                             except:
-                                feed_out['logoUrl'] = ''
+                                feed_out['logo_url'] = ''
                             try:
-                                feed_out['publisherName'] = jsonld['publisher']['name']
+                                feed_out['publisher_name'] = jsonld['publisher']['name']
                             except:
-                                feed_out['publisherName'] = ''
+                                feed_out['publisher_name'] = ''
 
                             if (dataset_url not in feeds.keys()):
                                 feeds[dataset_url] = []
@@ -321,14 +321,14 @@ def get_partner_feed_url(feed1_url, feed2_url_options):
 # On subsequent automated internal calls to the helper function, the opportunities dictionary will
 # already exist and have content to be added to. If a call fails for some reason when running in some
 # other code (i.e. when not running on a server), then the returned dictionary can be manually resubmitted
-# as the argument instead of a starting URL string, and the code will continue from the 'nextUrl' in
-# the opportunities dictionary.
+# as the argument instead of a starting URL string, and the code will continue from the 'next_url'
+# in the opportunities dictionary.
 
 opportunities_template = {
     'items': {},
     'num_urls': 0,
-    'firstUrlOrigin': '',
-    'nextUrl': '',
+    'first_url_origin': '',
+    'next_url': '',
     'status': '',
 }
 
@@ -351,14 +351,14 @@ def get_opportunities(arg, **kwargs):
             else:
                 return None
         opportunities = copy.deepcopy(opportunities_template)
-        opportunities['nextUrl'] = get_opportunities_next_url(arg, opportunities)
+        opportunities['next_url'] = get_opportunities_next_url(arg, opportunities)
     elif (type(arg) == dict):
         # Note that we allow for extra keys in the incoming opportunities dictionary which aren't in the template,
         # in case the user has added custom fields. These don't affect the processing herein, and so aren't
         # restricted:
         if (    (any([((key not in arg.keys()) or (type(arg[key]) != type(opportunities_template[key]))) for key in opportunities_template.keys()]))
-            or  (len(arg['firstUrlOrigin']) == 0)
-            or  (len(arg['nextUrl']) == 0)
+            or  (len(arg['first_url_origin']) == 0)
+            or  (len(arg['next_url']) == 0)
         ):
             set_message('Invalid input, opportunities must be a dictionary with the expected content', 'warning')
             if (log_memory):
@@ -380,7 +380,7 @@ def get_opportunities(arg, **kwargs):
     try:
         time_start = datetime.now()
         while (True):
-            feed_url = opportunities['nextUrl']
+            feed_url = opportunities['next_url']
 
             if (log_memory):
                 opportunities, get_opportunities_helper_done, sum_bytesize_item_deltas_current = get_opportunities_helper(opportunities, **kwargs)
@@ -412,7 +412,7 @@ def get_opportunities_helper(opportunities, **kwargs):
     log_memory = kwargs.get('log_memory', False)
     verbose = kwargs.get('verbose', False)
 
-    feed_url = opportunities['nextUrl']
+    feed_url = opportunities['next_url']
     feed_page, num_tries = try_requests(feed_url, **kwargs)
 
     if (    (feed_page is None)
@@ -452,14 +452,14 @@ def get_opportunities_helper(opportunities, **kwargs):
         and (type(feed_page.json()['next']) == str)
         and (len(feed_page.json()['next']) > 0)
     ):
-        opportunities['nextUrl'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
+        opportunities['next_url'] = get_opportunities_next_url(feed_page.json()['next'], opportunities)
     else:
-        opportunities['nextUrl'] = ''
+        opportunities['next_url'] = ''
 
-    if (opportunities['nextUrl'] != feed_url):
+    if (opportunities['next_url'] != feed_url):
         opportunities['num_urls'] += 1
 
-    get_opportunities_helper_done = opportunities['nextUrl'] in [feed_url, '']
+    get_opportunities_helper_done = opportunities['next_url'] in [feed_url, '']
 
     if (log_memory):
         return opportunities, get_opportunities_helper_done, sum_bytesize_item_deltas
@@ -478,12 +478,12 @@ def get_opportunities_next_url(next_url_original, opportunities):
         and (next_url_original_parsed.netloc != '')
     ):
         if (opportunities['num_urls'] == 0):
-            opportunities['firstUrlOrigin'] = '://'.join([next_url_original_parsed.scheme, next_url_original_parsed.netloc])
+            opportunities['first_url_origin'] = '://'.join([next_url_original_parsed.scheme, next_url_original_parsed.netloc])
         next_url = next_url_original_unquoted
     elif (  (next_url_original_parsed.path != '')
         or  (next_url_original_parsed.query != '')
     ):
-        next_url = opportunities['firstUrlOrigin']
+        next_url = opportunities['first_url_origin']
         if (next_url_original_parsed.path != ''):
             next_url += ('/' if (next_url_original_parsed.path[0] != '/') else '') + next_url_original_parsed.path
         if (next_url_original_parsed.query != ''):
