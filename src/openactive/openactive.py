@@ -326,7 +326,7 @@ def get_partner_feed_url(feed1_url, feed2_url_options):
 
 opportunities_template = {
     'items': {},
-    'urls': [],
+    'num_urls': 0,
     'firstUrlOrigin': '',
     'nextUrl': '',
     'status': '',
@@ -457,7 +457,7 @@ def get_opportunities_helper(opportunities, **kwargs):
         opportunities['nextUrl'] = ''
 
     if (opportunities['nextUrl'] != feed_url):
-        opportunities['urls'].append(feed_url)
+        opportunities['num_urls'] += 1
 
     get_opportunities_helper_done = opportunities['nextUrl'] in [feed_url, '']
 
@@ -477,7 +477,7 @@ def get_opportunities_next_url(next_url_original, opportunities):
     if (    (next_url_original_parsed.scheme != '')
         and (next_url_original_parsed.netloc != '')
     ):
-        if (len(opportunities['urls']) == 0):
+        if (opportunities['num_urls'] == 0):
             opportunities['firstUrlOrigin'] = '://'.join([next_url_original_parsed.scheme, next_url_original_parsed.netloc])
         next_url = next_url_original_unquoted
     elif (  (next_url_original_parsed.path != '')
