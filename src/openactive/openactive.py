@@ -268,6 +268,10 @@ feed_url_parts_groups = {
         'facilityuse',
     ],
     'Slot': [
+        'individual-facility-use/slots',
+        'individual-facility-use/slot',
+        'individual-facility-use-slots',
+        'individual-facility-use-slot',
         'facility-uses/events',
         'facility-uses/event',
         'facility-uses-events',
