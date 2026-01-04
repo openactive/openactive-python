@@ -541,12 +541,13 @@ def get_item_data_types(opportunities):
 superevent_labels = \
         ['SessionSeries'] \
     +   ['FacilityUse', 'IndividualFacilityUse'] \
-    +   ['EventSeries', 'HeadlineEvent'] \
-    +   ['CourseInstance']
+    +   ['EventSeries'] \
+    +   ['league']
 subevent_labels = \
-        ['ScheduledSession', 'ScheduledSessions', 'session', 'sessions'] \
-    +   ['Slot', 'Slot for FacilityUse'] \
-    +   ['Event', 'OnDemandEvent']
+        ['ScheduledSession', 'ScheduledSessions', 'Session', 'Sessions', 'session', 'sessions', 'ScheduledSession.SessionSeries'] \
+    +   ['Slot', 'Slot for FacilityUse', 'FacilityUse/Slot', 'FacilityUse.Slot', 'IndividualFacilityUse/Slot'] \
+    +   ['Event', 'event', 'HeadlineEvent', 'OnDemandEvent'] \
+    +   ['CourseInstance']
 
 def get_event_type(label):
     if (label in superevent_labels):
