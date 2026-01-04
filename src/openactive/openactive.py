@@ -525,24 +525,24 @@ def get_item_kinds(opportunities):
 
 # --------------------------------------------------------------------------------------------------
 
-def get_item_data_types(opportunities):
-    item_data_types = {}
+def get_item_types(opportunities):
+    item_types = {}
 
     for item in opportunities['items'].values():
-        item_data_type = None
+        item_type = None
 
         if ('data' in item.keys()):
             if ('type' in item['data'].keys()):
-                item_data_type = item['data']['type']
+                item_type = item['data']['type']
             elif ('@type' in item['data'].keys()):
-                item_data_type = item['data']['@type']
+                item_type = item['data']['@type']
 
-        if (item_data_type not in item_data_types.keys()):
-            item_data_types[item_data_type] = 1
+        if (item_type not in item_types.keys()):
+            item_types[item_type] = 1
         else:
-            item_data_types[item_data_type] += 1
+            item_types[item_type] += 1
 
-    return item_data_types
+    return item_types
 
 # --------------------------------------------------------------------------------------------------
 
