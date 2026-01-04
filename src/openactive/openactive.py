@@ -219,6 +219,10 @@ def get_feeds(**kwargs):
                             except:
                                 feed_out['licenseUrl'] = ''
                             try:
+                                feed_out['logoUrl'] = jsonld['publisher']['logo']['url']
+                            except:
+                                feed_out['logoUrl'] = ''
+                            try:
                                 feed_out['publisherName'] = jsonld['publisher']['name']
                             except:
                                 feed_out['publisherName'] = ''
