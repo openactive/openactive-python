@@ -10,8 +10,9 @@ from .openactive import (
     get_partner_feed_url,
     get_opportunities,
     get_item_kinds,
-    get_item_data_types,
+    get_item_types,
     get_event_type,
+    get_superevent_id_v_subevent_ids,
     get_superevents,
     get_subevents,
 )
