@@ -4,13 +4,14 @@ build-backend = 'setuptools.build_meta'
 
 [project]
 name = 'openactive'
-version = '2.0.0'
+version = '3.0.0'
 authors = [
   { name='Darren Temple', email='hello@openactive.io' },
 ]
-# maintainers = [
-#   { name='Maintainer', email='maintainer@example.com' },
-# ]
+maintainers = [
+  { name='Howard Askew', email='hello@openactive.io' },
+  { name='Huseyin Kir', email='hello@openactive.io' },
+]
 license = { file='LICENSE' }
 readme = 'README.md'
 description = 'For reading feeds of sports and activity data published in the OpenActive format'

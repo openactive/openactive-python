@@ -1,3 +1,47 @@
+# v3.0.0 (2026-01-05)
+- `try_requests`
+  - Added option for call headers, with defaults
+  - Added protection against calls not returning properly
+- `get_catalogue_urls`
+  - Added option to use the preview collection
+- `get_feeds`
+  - Added feed `logo_url`
+  - Changed feed `name` to `dataset_name`, as it applies to all feeds in the dataset
+- `get_partner_feed_url`
+  - Added more variants of slot URLs
+- `get_opportunities`
+  - Added timeout functionality, default set to 600 seconds for running a single feed
+  - Added memory logging functionality, tracking item-by-item bytesize differences using `sys.getsizeof`. This may not be super accurate, but should at least give some idea of how the opportunities dictionary size changes in memory as it's altered.
+  - Added `status` field to the opportunities dictionary, which has a value of `'COMPLETE'`, `'TIMEOUT'` or `'ERROR'`
+  - Added `num_urls` field to the opportunities dictionary, which is the number of URLs visited in total for the feed
+  - Removed the perpetual accumulating record of feed URLs visited, as this just grows over time and is unnecessary
+  - Allowed for extra custom keys in the opportunities dictionary by loosening the input verification
+  - Delegated tasks to a new function `get_opportunities_helper`, which processes a single feed page at a time before returning to `get_opportunities`. As such, `get_opportunities` itself no longer operates on an ever deepening recursion, which had potential performance issues.
+- `get_opportunities_helper`
+  - Added this new function
+- `get_bytesize`
+  - Added this new function
+- `get_item_kinds`
+  - Modified to also count `None` if the kind is not present
+- `get_item_data_types`
+  - Modified to also count `None` if the type is not present
+  - Renamed to `get_item_types`
+- `get_event_type`
+  - Added more superevent and subevent labels to judge feeds by their kind/type
+  - Moved `'HeadlineEvent'` and `'CourseInstance'` from superevent to subevent labels, which seemed to better suit the nature of their content i.e. actually containing subevent information
+- `get_superevents`
+  - Added keyword list of superevent IDs to skip
+- `get_subevents`
+  - Added keyword list of subevent IDs to skip
+- `get_superevent_id_v_subevent_ids`
+  - Added this new function
+- `get_superevent_id_in_subevent`
+  - Renamed to `get_subevent_superevent_modified_id`
+- `get_superevent_ids`
+  - Renamed to `get_item_modified_ids`
+- Miscellaneous
+  - Various nomenclature and ordering changes for simplicity, consistency and clarity, also ensuring snake case throughout
+
 # v2.0.0 (2024-03-22)
 - Added new functions for assessing opportunities:
   - `get_event_type`: Returns `'superevent'`, `'subevent'` or `None` for a given opportunity item "kind" or "type" label such as `'SessionSeries'`
