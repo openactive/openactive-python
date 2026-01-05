@@ -42,17 +42,17 @@ In a Python session running in an environment with the `openactive` package inst
 
 In order to effectively use the package, we must first understand the OpenActive ecosystem. OpenActive data is decentralised, so there is no single owner or location that stores and serves the data. Instead, data is released by multiple data publishers as separate Realtime Paged Data Exchange (RPDE) feeds, which are described in more detail later. There can also be multiple feeds from a given publisher, and in fact we often have complimentary pairs of feeds, such as having one for super-event data (e.g. various series of fitness classes) and one for sub-event data (e.g. various sessions in the various series). In such cases, both feeds must be read in order to get a complete picture, and items in one feed will reference items in the other feed. The alternative to this would be to copy each super-event data item into each associated sub-event data item, resulting in one feed with a lot of duplication.
 
-A group of feeds from a data publisher is bundled together in a "dataset", a group of datasets from different data publishers is bundled together in a "catalogue", and a group of catalogues is bundled together in a "collection". There is only one collection, which is therefore the starting point for everything else. Given a list of all feed information, you will not often want to see the exact path by which the information was gathered, but there are functions in the `openactive` package that break down the journey from the source collection if needed. So let's just start at the very beginning to be clear on how things work. First, let's define a printer function to give us a clear indented output display for what follows:
+A group of feeds from a data publisher is bundled together in a "dataset", a group of datasets from different data publishers is bundled together in a "catalogue", and a group of catalogues is bundled together in a "collection". There are only two collections, one for regular data and one for preview data used for testing, which are therefore the starting points for everything else. Given a list of all feed information, you will not often want to see the exact path by which the information was gathered, but there are functions in the `openactive` package that break down the journey from the source collection if needed. So let's just start at the very beginning to be clear on how things work. First, let's define a printer function to give us a clear indented output display for what follows:
 
 ```
 >>> import json
 >>> def printer(arg):
-...     print(json.dumps(arg,indent=4))
+...     print(json.dumps(arg, indent=4))
 ```
 
 ## Get feeds
 
-Now let's get the catalogue URLs in the collection, which should take about a second:
+Now let's get the catalogue URLs in the regular collection, which should take about a second:
 
 ```
 >>> catalogue_urls = oa.get_catalogue_urls()
@@ -82,7 +82,21 @@ CALLING: https://openactive.io/data-catalogs/data-catalog-collection.jsonld
 ]
 ```
 
-Now for each of these catalogue URLs let's get the dataset URLs they contain, which should take a few seconds. Note that `get_dataset_urls` calls `get_catalogue_urls` internally, the above was just for illustration of the process:
+The `get_catalogue_urls` function also has an additional `preview` boolean keyword that results in the function accessing the preview collection of catalogues instead of the regular collection:
+
+```
+>>> preview_catalogue_urls = oa.get_catalogue_urls(preview=True)
+>>> printer(preview_catalogue_urls)
+{
+    "https://openactive.io/data-catalogs/data-catalog-collection-preview.jsonld": [
+        "https://openactive.io/data-catalogs/singular-preview.jsonld"
+    ]
+}
+```
+
+We will stick with the regular collection and its derivatives for the rest of this documentation.
+
+Now for each catalogue URL let's get the dataset URLs they contain, which should take a few seconds. Note that `get_dataset_urls` calls `get_catalogue_urls` internally (and, if needed, the `preview` keyword will be passed through), the above was just for illustration of the process:
 
 ```
 Note: Output is truncated at 'etc.'
@@ -91,7 +105,7 @@ Note: Output is truncated at 'etc.'
 >>> printer(dataset_urls)
 {
     "https://opendata.leisurecloud.live/api/datacatalog": [
-        "https://activeleeds-oa.leisurecloud.net/OpenActive/",
+        "https://activehartlepool.gs-signature.cloud/OpenActive/",
         etc.
     ],
     "https://openactivedatacatalog.legendonlineservices.co.uk/api/DataCatalog": [
@@ -111,49 +125,43 @@ Note: Output is truncated at 'etc.'
 
 We again see an output dictionary, with keys that are catalogue URLs and values that are lists of dataset URLs. The above output display is truncated, and you will see many more dataset URLs if you run the command yourself.
 
-Now for each of these dataset URLs let's get the feed information they contain, which should take a couple of minutes. Note that `get_feeds` calls `get_dataset_urls` internally, the above was just for illustration of the process:
+Now for each of these dataset URLs let's get the feed information they contain, which should take a couple of minutes. Note that `get_feeds` calls `get_dataset_urls` internally (and, if needed, the `preview` keyword will be passed through), the above was just for illustration of the process:
 
 ```
 Note: Output is truncated at 'etc.'
 
 >>> feeds = oa.get_feeds()
-WARNING: Retrying (1/9): https://gll-openactive.legendonlineservices.co.uk/OpenActive
-WARNING: Retrying (1/9): https://sllandinspireall-openactive.legendonlineservices.co.uk/OpenActive
-WARNING: Retrying (1/9): https://data.bookwhen.com/
-WARNING: Retrying (2/9): https://data.bookwhen.com/
-WARNING: Retrying (3/9): https://data.bookwhen.com/
-WARNING: Retrying (4/9): https://data.bookwhen.com/
-WARNING: Retrying (5/9): https://data.bookwhen.com/
-WARNING: Retrying (6/9): https://data.bookwhen.com/
-WARNING: Retrying (7/9): https://data.bookwhen.com/
-WARNING: Retrying (8/9): https://data.bookwhen.com/
-WARNING: Retrying (9/9): https://data.bookwhen.com/
-WARNING: Max. tries (10) reached for: https://data.bookwhen.com/
-ERROR: Can't get dataset: https://data.bookwhen.com/
-ERROR: Can't get dataset: https://www.participant.co.uk/participant/openactive/
+ERROR: https://tameside-openactive.legendonlineservices.co.uk/OpenActive: Call failed with status code 403
+WARNING: Retrying (1/9): https://tameside-openactive.legendonlineservices.co.uk/OpenActive
+ERROR: https://lincsinspire-openactive.legendonlineservices.co.uk/OpenActive: Call failed with status code 403
+WARNING: Retrying (1/9): https://lincsinspire-openactive.legendonlineservices.co.uk/OpenActive
+ERROR: https://activenottingham-openactive.legendonlineservices.co.uk/OpenActive: Call failed with status code 403
+WARNING: Retrying (1/9): https://activenottingham-openactive.legendonlineservices.co.uk/OpenActive
 >>> printer(feeds)
 {
-    "https://activeleeds-oa.leisurecloud.net/OpenActive/": [
+    "https://activehartlepool.gs-signature.cloud/OpenActive/": [
         {
-            "name": "Active Leeds Sessions and Facilities",
             "type": "CourseInstance",
-            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-course-instance",
-            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Active Leeds"
+            "url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-course-instance",
+            "dataset_name": "Hartlepool Borough Council Sessions and Facilities",
+            "dataset_url": "https://activehartlepool.gs-signature.cloud/OpenActive/",
+            "discussion_url": "",
+            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            "logo_url": "https://activehartlepool.gs-signature.cloud/OpenActive/Content/images/gladstone.png",
+            "publisher_name": "Hartlepool Borough Council"
         },
         etc.
     ],
-    "https://brimhamsactive.gs-signature.cloud/OpenActive/": [
+    "https://activeleeds-oa.leisurecloud.net/OpenActive/": [
         {
-            "name": "Brimhams Active Sessions and Facilities",
             "type": "CourseInstance",
-            "url": "https://opendata.leisurecloud.live/api/feeds/BrimhamsActive-live-course-instance",
-            "datasetUrl": "https://brimhamsactive.gs-signature.cloud/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Brimhams Active"
+            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-course-instance",
+            "dataset_name": "Active Leeds Sessions and Facilities",
+            "dataset_url": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
+            "discussion_url": "",
+            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            "logo_url": "https://res.cloudinary.com/gladstone/image/upload/ActiveLeeds-live/jomzctf3tyiaxwkplobw",
+            "publisher_name": "Active Leeds"
         },
         etc.
     ],
@@ -178,53 +186,57 @@ Note: Output is truncated at 'etc.'
 
 >>> printer(feeds)
 {
-    "https://activeleeds-oa.leisurecloud.net/OpenActive/": [
+    "https://activehartlepool.gs-signature.cloud/OpenActive/": [
         {
-            "name": "Active Leeds Sessions and Facilities",
             "type": "CourseInstance",
-            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-course-instance",
-            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Active Leeds"
+            "url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-course-instance",
+            "dataset_name": "Hartlepool Borough Council Sessions and Facilities",
+            "dataset_url": "https://activehartlepool.gs-signature.cloud/OpenActive/",
+            "discussion_url": "",
+            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            "logo_url": "https://activehartlepool.gs-signature.cloud/OpenActive/Content/images/gladstone.png",
+            "publisher_name": "Hartlepool Borough Council"
         },
         {
-            "name": "Active Leeds Sessions and Facilities",
             "type": "SessionSeries",
-            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series",
-            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Active Leeds"
+            "url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-session-series",
+            "dataset_name": "Hartlepool Borough Council Sessions and Facilities",
+            "dataset_url": "https://activehartlepool.gs-signature.cloud/OpenActive/",
+            "discussion_url": "",
+            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            "logo_url": "https://activehartlepool.gs-signature.cloud/OpenActive/Content/images/gladstone.png",
+            "publisher_name": "Hartlepool Borough Council"
         },
         {
-            "name": "Active Leeds Sessions and Facilities",
             "type": "ScheduledSession",
-            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions",
-            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Active Leeds"
+            "url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-scheduled-sessions",
+            "dataset_name": "Hartlepool Borough Council Sessions and Facilities",
+            "dataset_url": "https://activehartlepool.gs-signature.cloud/OpenActive/",
+            "discussion_url": "",
+            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            "logo_url": "https://activehartlepool.gs-signature.cloud/OpenActive/Content/images/gladstone.png",
+            "publisher_name": "Hartlepool Borough Council"
         },
         {
-            "name": "Active Leeds Sessions and Facilities",
             "type": "FacilityUse",
-            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-facility-uses",
-            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Active Leeds"
+            "url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-facility-uses",
+            "dataset_name": "Hartlepool Borough Council Sessions and Facilities",
+            "dataset_url": "https://activehartlepool.gs-signature.cloud/OpenActive/",
+            "discussion_url": "",
+            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            "logo_url": "https://activehartlepool.gs-signature.cloud/OpenActive/Content/images/gladstone.png",
+            "publisher_name": "Hartlepool Borough Council"
         },
         {
-            "name": "Active Leeds Sessions and Facilities",
             "type": "Slot",
-            "url": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-slots",
-            "datasetUrl": "https://activeleeds-oa.leisurecloud.net/OpenActive/",
-            "discussionUrl": "",
-            "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-            "publisherName": "Active Leeds"
+            "url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-slots",
+            "dataset_name": "Hartlepool Borough Council Sessions and Facilities",
+            "dataset_url": "https://activehartlepool.gs-signature.cloud/OpenActive/",
+            "discussion_url": "",
+            "license_url": "https://creativecommons.org/licenses/by/4.0/",
+            "logo_url": "https://activehartlepool.gs-signature.cloud/OpenActive/Content/images/gladstone.png",
+            "publisher_name": "Hartlepool Borough Council"
         }
-
     ],
     etc.
 }
@@ -233,14 +245,14 @@ Note: Output is truncated at 'etc.'
 Extracting the feed starting URLs for this dataset, we have:
 
 ```
->>> feed_urls = [feed['url'] for feed in feeds['https://activeleeds-oa.leisurecloud.net/OpenActive/']]
+>>> feed_urls = [feed['url'] for feed in feeds['https://activehartlepool.gs-signature.cloud/OpenActive/']]
 >>> printer(feed_urls)
 [
-    "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-course-instance",
-    "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series",
-    "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions",
-    "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-facility-uses",
-    "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-slots"
+    "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-course-instance",
+    "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-session-series",
+    "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-scheduled-sessions",
+    "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-facility-uses",
+    "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-slots"
 ]
 ```
 
@@ -252,20 +264,20 @@ To help automate workflows, there is a function called `get_partner_feed_url` th
 ...     print('Feed-1 URL:', feed_url)
 ...     print('Feed-2 URL:', partner_feed_url, '\n')
 ...
-Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-course-instance
+Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-course-instance
 Feed-2 URL: None
 
-Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series
-Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions
+Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-session-series
+Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-scheduled-sessions
 
-Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions
-Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series
+Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-scheduled-sessions
+Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-session-series
 
-Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-facility-uses
-Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-slots
+Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-facility-uses
+Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-slots
 
-Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-slots
-Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-facility-uses
+Feed-1 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-slots
+Feed-2 URL: https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-facility-uses
 ```
 
 The `course-instance` feed is the only standalone feed in this case, with the remaining four feeds being two pairs, namely the `session-series` super-event feed with the `scheduled-sessions` sub-event feed, and the `facility-uses` super-event feed with the `slots` sub-event feed. Note that it doesn't matter if the single feed starting URL provided to `get_partner_feed_url` is for a super-event feed or a sub-event feed, it will find whatever partner URL matches.
@@ -273,8 +285,8 @@ The `course-instance` feed is the only standalone feed in this case, with the re
 Let's look at the paired `session-series` and `scheduled-sessions` feeds from the above dataset. As mentioned, a feed consists of a list of opportunity items split over a number of pages. Some items are in fact not live and are marked as deleted, and some items may supersede other items with more up-to-date values. To get all of the data for a given feed, we must visit each page one-by-one and retain only the most up-to-date live items, which is done by the `get_opportunities` function. Note that the number of pages in a given feed is not known in advance, and so the time required to read all associated pages can vary greatly between one feed and another, from a number of seconds to a number of minutes. The `verbose` keyword may be particularly useful here to monitor progress. The feeds in this example should only take a few seconds each:
 
 ```
->>> superevent_opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series')
->>> subevent_opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions')
+>>> superevent_opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-session-series')
+>>> subevent_opportunities = oa.get_opportunities('https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-scheduled-sessions')
 ```
 
 For the super-event data we have:
@@ -285,29 +297,24 @@ Note: Output is truncated at 'etc.'
 >>> printer(superevent_opportunities)
 {
     "items": {
-        "HO1ONDL23501021": {
-            "id": "HO1ONDL23501021",
-            "modified": 14554552,
+        "1H1000CLPTT1023": {
+            "id": "1H1000CLPTT1023",
+            "modified": 1961394,
             "kind": "SessionSeries",
             "state": "updated",
             "data": {
-                "@context": [
-                    "https://openactive.io/",
-                    "https://openactive.io/ns-beta"
-                ],
+                "@context": "https://openactive.io/",
                 "@type": "SessionSeries",
-                "@id": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/session-series/HO1ONDL23501021",
+                "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/session-series/1H1000CLPTT1023",
                 etc.
             }
         },
         etc.
     },
-    "urls": [
-        "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series",
-        "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series?afterTimestamp=24571209&afterId=SH5CLPI13300124"
-    ],
-    "firstUrlOrigin": "https://opendata.leisurecloud.live",
-    "nextUrl": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-session-series?afterTimestamp=26002956&afterId=KL2CLPL11001121"
+    "num_urls": 1,
+    "first_url_origin": "https://opendata.leisurecloud.live",
+    "next_url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-session-series?afterTimestamp=2790465&afterId=4H1000CLBOX0725",
+    "status": "COMPLETE"
 }
 ```
 
@@ -319,9 +326,9 @@ Note: Output is truncated at 'etc.'
 >>> printer(subevent_opportunities)
 {
     "items": {
-        "00000000000170005743": {
-            "id": "00000000000170005743",
-            "modified": 34213402,
+        "00000000000030044083": {
+            "id": "00000000000030044083",
+            "modified": 2757133,
             "kind": "ScheduledSession",
             "state": "updated",
             "data": {
@@ -330,45 +337,43 @@ Note: Output is truncated at 'etc.'
                     "https://openactive.io/ns-beta"
                 ],
                 "@type": "ScheduledSession",
-                "@id": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/scheduled-sessions/170005743",
+                "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/scheduled-sessions/30044083",
                 etc.
             }
         },
         etc.
-    }
-    "urls": [
-        "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions",
-        "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions?afterTimestamp=34383479&afterId=00000000000060031844",
-        "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions?afterTimestamp=34385051&afterId=00000000000130035754",
-        "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions?afterTimestamp=34386561&afterId=00000000000010053619"
-    ],
-    "firstUrlOrigin": "https://opendata.leisurecloud.live",
-    "nextUrl": "https://opendata.leisurecloud.live/api/feeds/ActiveLeeds-live-scheduled-sessions?afterTimestamp=34387745&afterId=00000000000080031177"
+    },
+    "num_urls": 1,
+    "first_url_origin": "https://opendata.leisurecloud.live",
+    "next_url": "https://opendata.leisurecloud.live/api/feeds/HartlepoolBoroughCouncil-live-scheduled-sessions?afterTimestamp=2795431&afterId=00000000000030034757",
+    "status": "COMPLETE"
 }
 ```
 
-The returned outputs are, once again, in dictionary form, and the main content of interest is found under the `items` key. The above output display is truncated, and you will see many more items if you run the command yourself. This output cannot be flattened via the `flat` keyword, as its structure is essential to maintain for potential later use. All URLs that were visited in the feed chain are also returned in the output, as well as the first URL "origin" component, and the next URL to be visited when the feed is updated by the publisher, in order to continue the read at this point in the feed chain at a later time. To do this, which can also be done if we encounter an issue and only receive output from a partial read of the feed chain, we give the output dictionary to the function as argument rather than the feed starting URL. Using the super-event feed to illustrate, we would do:
+The returned outputs are, once again, in dictionary form, and the main content of interest is found under the `items` key. The above output display is truncated, and you will see many more items if you run the command yourself. This output cannot be flattened via the `flat` keyword, as its structure is essential to maintain for potential later use. The number of URLs that were visited in the feed chain is also returned in the output, as well as the first URL "origin" component, and the next URL to be visited when the feed is updated by the publisher, in order to continue the read at this point in the feed chain at a later time. To do this, which can also be done if we encounter an issue and only receive output from a partial read of the feed chain, we give the output dictionary to the function as argument rather than the feed starting URL. Using the super-event feed to illustrate, we would do:
 
 ```
 >>> superevent_opportunities_new = oa.get_opportunities(superevent_opportunities)
 ```
 
+The is also a `status` field in the above, which can have a value of `'COMPLETE'` if all pages were read without issue, `'TIMEOUT'` if the read was progressing but took longer than the set time limit, or `'ERROR'` if the read was not progressing and had to be cancelled for whatever reason, such as repeated server errors beyond the retry limit.
+
 ## Assess opportunities
 
-After obtaining a set of opportunity items, we can scan through all of them and count the various "kind" and "type" values that appear, using the functions `get_item_kinds` and `get_item_data_types`. Usually there is only one kind and one type for a given feed, and usually these are the same as each other too, but there can be differences and this is useful to keep in mind. Let's take a look for the opportunities obtained above.
+After obtaining a set of opportunity items, we can scan through all of them and count the various "kind" and "type" values that appear, using the functions `get_item_kinds` and `get_item_types`. Usually there is only one kind and one type for a given feed, and usually these are the same as each other too, but there can be differences and this is useful to keep in mind. Let's take a look for the opportunities obtained above.
 
 For the super-event data we have:
 
 ```
 >>> len(superevent_opportunities['items'].keys())
-916
+91
 >>> printer(oa.get_item_kinds(superevent_opportunities))
 {
-    "SessionSeries": 916
+    "SessionSeries": 91
 }
->>> printer(oa.get_item_data_types(superevent_opportunities))
+>>> printer(oa.get_item_types(superevent_opportunities))
 {
-    "SessionSeries": 916
+    "SessionSeries": 91
 }
 ```
 
@@ -376,18 +381,18 @@ For the sub-event data we have:
 
 ```
 >>> len(subevent_opportunities['items'].keys())
-1476
+191
 >>> printer(oa.get_item_kinds(subevent_opportunities))
 {
-    "ScheduledSession": 1476
+    "ScheduledSession": 191
 }
->>> printer(oa.get_item_data_types(subevent_opportunities))
+>>> printer(oa.get_item_types(subevent_opportunities))
 {
-    "ScheduledSession": 1476
+    "ScheduledSession": 191
 }
 ```
 
-In this case, all 916 super-event items have a kind and a type of `SessionSeries`, and all 1476 sub-event items have a kind and a type of `ScheduledSession`. So it's safe to say that these are pure feeds of only one of the OpenActive data variants each, and we can treat them as such in further analysis. Note that you will likely see different values to the above if you're following through, as OpenActive feeds are dynamically changing.
+In this case, all 91 super-event items have a kind and a type of `SessionSeries`, and all 191 sub-event items have a kind and a type of `ScheduledSession`. So it's safe to say that these are pure feeds of only one of the OpenActive data variants each, and we can treat them as such in further analysis. Note that you will likely see different values to the above if you're following through, as OpenActive feeds are dynamically changing.
 
 Even though we have commented that the `SessionSeries` feed is super-event data and the `ScheduledSession` feed is sub-event data, these judgements were made simply by observation and knowledge of the OpenActive data model. In order to automate an analysis that relies on knowing whether we're dealing with super-event data or sub-event data, the `get_event_type` function is useful. This takes an item kind or type label and returns `'superevent'`, `'subevent'` or `None`, accordingly:
 
@@ -401,13 +406,13 @@ Even though we have commented that the `SessionSeries` feed is super-event data 
 True
 ```
 
-Finally, let's look at the relationship between the items in a pair of super-event and sub-event feeds. For any single sub-event item, there will be a single related super-event item i.e. a single class belongs to a single series of classes. For any single super-event item, there will be a number of related sub-event items i.e. a single series of classes has a number of classes. The functions `get_superevents` and `get_subevents` help with these two situations, respectively. Let's take a look at each in turn. First, let's observe a single sub-event item from the full list of sub-event items:
+Let's now look at the relationship between the items in a pair of super-event and sub-event feeds. For any single sub-event item, there will be a single related super-event item i.e. a single yoga class belongs to a single series of yoga classes. For any single super-event item, there will be a number of related sub-event items i.e. a single series of yoga classes has a number of yoga classes. The functions `get_superevents` and `get_subevents` help with these two situations, respectively. Let's take a look at each in turn. First, let's observe a single sub-event item from the full set of sub-event items:
 
 ```
 >>> printer(list(subevent_opportunities['items'].values())[0])
 {
-    "id": "00000000000170005743",
-    "modified": 34213402,
+    "id": "00000000000030044083",
+    "modified": 2757133,
     "kind": "ScheduledSession",
     "state": "updated",
     "data": {
@@ -416,32 +421,32 @@ Finally, let's look at the relationship between the items in a pair of super-eve
             "https://openactive.io/ns-beta"
         ],
         "@type": "ScheduledSession",
-        "@id": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/scheduled-sessions/170005743",
-        "startDate": "2024-02-23T10:00:00+00:00",
-        "identifier": 170005743,
-        "endDate": "2024-02-23T11:00:00+00:00",
-        "superEvent": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/session-series/WE5CLKM10000723",
-        "duration": "PT1H",
-        "maximumAttendeeCapacity": 20,
-        "remainingAttendeeCapacity": 0,
+        "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/scheduled-sessions/30044083",
+        "startDate": "2026-01-05T14:00:00+00:00",
+        "identifier": 30044083,
+        "endDate": "2026-01-05T14:45:00+00:00",
+        "superEvent": "https://activehartlepool.gs-signature.cloud/OpenActive/api/session-series/1POSTNPIL0925",
+        "duration": "PT45M",
+        "maximumAttendeeCapacity": 12,
+        "remainingAttendeeCapacity": 12,
         "beta:sportsActivityLocation": [
             {
                 "@type": "SportsActivityLocation",
-                "name": "Activity Room"
+                "name": "Studio"
             }
         ]
     }
 }
 ```
 
-Note that there is a field called "superEvent" in the above, the value of which contains what looks like a unique ID, namely "WE5CLKM10000723". We can see that this exists within the full list of super-event items:
+Note that there is a field called "superEvent" in the above, the value of which contains what looks like a unique ID, namely "1POSTNPIL0925". We can see that this exists within the full set of super-event items:
 
 ```
->>> 'WE5CLKM10000723' in superevent_opportunities['items'].keys()
+>>> '1POSTNPIL0925' in superevent_opportunities['items'].keys()
 True
 ```
 
-Now let's select that super-event item itself, by giving the sub-event item and the full list of super-event items to `get_superevents`:
+Now let's select that super-event item itself, by giving the sub-event item and the full set of super-event items to `get_superevents`:
 
 ```
 Note: Output is truncated at 'etc.'
@@ -453,33 +458,26 @@ Note: Output is truncated at 'etc.'
 >>> printer(superevent_opportunities_selection)
 [
     {
-        "id": "WE5CLKM10000723",
-        "modified": 34053122,
+        "id": "1POSTNPIL0925",
+        "modified": 2757135,
         "kind": "SessionSeries",
         "state": "updated",
         "data": {
-            "@context": [
-                "https://openactive.io/",
-                "https://openactive.io/ns-beta"
-            ],
+            "@context": "https://openactive.io/",
             "@type": "SessionSeries",
-            "@id": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/session-series/WE5CLKM10000723",
+            "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/session-series/1POSTNPIL0925",
             "eventSchedule": [
                 {
                     "@type": "PartialSchedule",
-                    "byDay": [
-                        "https://schema.org/Friday"
-                    ],
-                    "duration": "PT1H",
-                    "endTime": "11:00",
-                    "startDate": "2023-07-21",
-                    "endDate": "2025-02-14",
-                    "startTime": "10:00"
+                    "duration": "PT45M",
+                    "endTime": "14:45",
+                    "startDate": "2025-09-01",
+                    "startTime": "14:00"
                 }
             ],
-            "identifier": "WE5CLKM10000723",
-            "name": "Keep Moving",
-            "attendeeInstructions": "Low level, low impact exercise for people with health conditions that want to become more active and improve their wellbeing",
+            "identifier": "1POSTNPIL0925",
+            "name": "Post Natal Pilates",
+            "attendeeInstructions": "A safe, supportive class to help mothers reconnect with exercise post-birth. This session restores pelvic floor and core strength, improves alignment, and builds confidence through mindful Pilates movements.",
             etc.
         }
     }
@@ -498,8 +496,8 @@ Now let's go the other way around, from a given super-event item to a group of s
 >>> printer(subevent_opportunities_selection)
 [
     {
-        "id": "00000000000170005743",
-        "modified": 34213402,
+        "id": "00000000000030044083",
+        "modified": 2757133,
         "kind": "ScheduledSession",
         "state": "updated",
         "data": {
@@ -508,25 +506,25 @@ Now let's go the other way around, from a given super-event item to a group of s
                 "https://openactive.io/ns-beta"
             ],
             "@type": "ScheduledSession",
-            "@id": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/scheduled-sessions/170005743",
-            "startDate": "2024-02-23T10:00:00+00:00",
-            "identifier": 170005743,
-            "endDate": "2024-02-23T11:00:00+00:00",
-            "superEvent": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/session-series/WE5CLKM10000723",
-            "duration": "PT1H",
-            "maximumAttendeeCapacity": 20,
-            "remainingAttendeeCapacity": 0,
+            "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/scheduled-sessions/30044083",
+            "startDate": "2026-01-05T14:00:00+00:00",
+            "identifier": 30044083,
+            "endDate": "2026-01-05T14:45:00+00:00",
+            "superEvent": "https://activehartlepool.gs-signature.cloud/OpenActive/api/session-series/1POSTNPIL0925",
+            "duration": "PT45M",
+            "maximumAttendeeCapacity": 12,
+            "remainingAttendeeCapacity": 12,
             "beta:sportsActivityLocation": [
                 {
                     "@type": "SportsActivityLocation",
-                    "name": "Activity Room"
+                    "name": "Studio"
                 }
             ]
         }
     },
     {
-        "id": "00000000000170005744",
-        "modified": 34365346,
+        "id": "00000000000030044084",
+        "modified": 2787552,
         "kind": "ScheduledSession",
         "state": "updated",
         "data": {
@@ -535,18 +533,45 @@ Now let's go the other way around, from a given super-event item to a group of s
                 "https://openactive.io/ns-beta"
             ],
             "@type": "ScheduledSession",
-            "@id": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/scheduled-sessions/170005744",
-            "startDate": "2024-03-01T10:00:00+00:00",
-            "identifier": 170005744,
-            "endDate": "2024-03-01T11:00:00+00:00",
-            "superEvent": "https://activeleeds-oa.leisurecloud.net/OpenActive/api/session-series/WE5CLKM10000723",
-            "duration": "PT1H",
-            "maximumAttendeeCapacity": 20,
-            "remainingAttendeeCapacity": 10,
+            "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/scheduled-sessions/30044084",
+            "startDate": "2026-01-12T14:00:00+00:00",
+            "identifier": 30044084,
+            "endDate": "2026-01-12T14:45:00+00:00",
+            "superEvent": "https://activehartlepool.gs-signature.cloud/OpenActive/api/session-series/1POSTNPIL0925",
+            "duration": "PT45M",
+            "maximumAttendeeCapacity": 12,
+            "remainingAttendeeCapacity": 12,
             "beta:sportsActivityLocation": [
                 {
                     "@type": "SportsActivityLocation",
-                    "name": "Activity Room"
+                    "name": "Studio"
+                }
+            ]
+        }
+    },
+    {
+        "id": "00000000000030044085",
+        "modified": 2794682,
+        "kind": "ScheduledSession",
+        "state": "updated",
+        "data": {
+            "@context": [
+                "https://openactive.io/",
+                "https://openactive.io/ns-beta"
+            ],
+            "@type": "ScheduledSession",
+            "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/scheduled-sessions/30044085",
+            "startDate": "2026-01-19T14:00:00+00:00",
+            "identifier": 30044085,
+            "endDate": "2026-01-19T14:45:00+00:00",
+            "superEvent": "https://activehartlepool.gs-signature.cloud/OpenActive/api/session-series/1POSTNPIL0925",
+            "duration": "PT45M",
+            "maximumAttendeeCapacity": 12,
+            "remainingAttendeeCapacity": 12,
+            "beta:sportsActivityLocation": [
+                {
+                    "@type": "SportsActivityLocation",
+                    "name": "Studio"
                 }
             ]
         }
@@ -554,7 +579,73 @@ Now let's go the other way around, from a given super-event item to a group of s
 ]
 ```
 
-We have a list of two sub-event items, one of which was the original input to `get_superevents`, as expected, and the other is the only other sub-event in the same super-event series. Such a list could contain many more items, but the above provides a complete and compact full example.
+We have a list of three sub-event items, one of which was the original input to `get_superevents`, as expected, and the others are the other sub-events in the same super-event series. Such a list could contain many more items, but the above provides a complete and compact full example.
+
+The `get_superevents` function has the keyword `skip_superevent_ids`, and the `get_subevents` function has the keyword `skip_subevent_ids`, both of which accept a list of IDs to skip out in the returned content. This can be useful if some IDs with issues are already known about, and you want to avoid them in further processing. To illustrate, let's run the last command above with its skip keyword:
+
+```
+>>> subevent_opportunities_selection = oa.get_subevents(
+...     superevent_opportunities_selection[0],
+...     subevent_opportunities,
+...     skip_subevent_ids=['00000000000030044083', '00000000000030044084']
+... )
+>>> printer(subevent_opportunities_selection)
+[
+    {
+        "id": "00000000000030044085",
+        "modified": 2794682,
+        "kind": "ScheduledSession",
+        "state": "updated",
+        "data": {
+            "@context": [
+                "https://openactive.io/",
+                "https://openactive.io/ns-beta"
+            ],
+            "@type": "ScheduledSession",
+            "@id": "https://activehartlepool.gs-signature.cloud/OpenActive/api/scheduled-sessions/30044085",
+            "startDate": "2026-01-19T14:00:00+00:00",
+            "identifier": 30044085,
+            "endDate": "2026-01-19T14:45:00+00:00",
+            "superEvent": "https://activehartlepool.gs-signature.cloud/OpenActive/api/session-series/1POSTNPIL0925",
+            "duration": "PT45M",
+            "maximumAttendeeCapacity": 12,
+            "remainingAttendeeCapacity": 12,
+            "beta:sportsActivityLocation": [
+                {
+                    "@type": "SportsActivityLocation",
+                    "name": "Studio"
+                }
+            ]
+        }
+    }
+]
+```
+
+Finally, to just get the IDs of super-events and their related sub-events, rather than extracting the full item information as above, then use the `get_superevent_id_v_subevent_ids` function. The first key entry of the following output is for the above example, with other key entries being for other super-events and their values being for their related sub-events:
+
+```
+Note: Output is truncated at 'etc.'
+
+>>> superevent_id_v_subevent_ids = oa.get_superevent_id_v_subevent_ids(superevent_opportunities, subevent_opportunities)
+>>> printer(superevent_id_v_subevent_ids)
+{
+    "1POSTNPIL0925": [
+        "00000000000030044083",
+        "00000000000030044084",
+        "00000000000030044085"
+    ],
+    "1B1400CLWFB0223": [
+        "00000000000010038922",
+        "00000000000010039340",
+        "00000000000010039999"
+    ],
+    "1MJNRCURCIT0925": [
+        "00000000000030044161",
+        "00000000000030044162"
+    ],
+    etc.
+}
+```
 
 The functions for assessing opportunities described in this section are a good starting point for further analysis, providing the user with a set of tools to find basic but important information about feed content. The user can then more confidently work with that content, including automations that may depend on knowing the item kind or type, and whether or not those labels indicate a pure super-event feed or sub-event feed.
 
@@ -569,20 +660,21 @@ Function|Input|Output (not using `flat`)
 `get_feeds`|-|dict: feed info for each dataset
 `get_partner_feed_url`|str: `feed1_url`<br>and<br>[str]: [`feed2_url_options`]|str: `feed2_url` that best partners with `feed1_url`
 `get_opportunities`|str: `feed_url`<br>or<br>dict: `opportunities`|dict: `opportunities` info for a given feed
-`get_item_kinds`|dict: `opportunities`|dict: Item kinds and counts
-`get_item_data_types`|dict: `opportunities`|dict: Item data types and counts
-`get_event_type`|str: item kind<br>or<br>str: item data type|str: "superevent" or "subevent"<br>or<br>None
+`get_item_kinds`|dict: `opportunities`|dict: Item kinds v. counts
+`get_item_types`|dict: `opportunities`|dict: Item types v. counts
+`get_event_type`|str: item kind<br>or<br>str: item type|str: 'superevent' or 'subevent'<br>or<br>None
 `get_superevents`|dict: sub-event item<br>and<br>dict: super-event `opportunities`|[dict]: [super-event items]
 `get_subevents`|dict: super-event item<br>and<br>dict: sub-event `opportunities`|[dict]: [sub-event items]
+`get_superevent_id_v_subevent_ids`|dict: super-event `opportunities`<br>and<br>dict: sub-event `opportunities`|dict: super-event ID v. list of related sub-event IDs
 
 Additionally, the data gathering functions accept the following keywords:
 
-Function|`flat`<br>bool|`verbose`<br>bool|`seconds_wait_next`<br>num|`seconds_wait_retry`<br>num|`num_tries_max`<br>int
-:---|:---|:---|:---|:---|:---
-`get_catalogue_urls`|&#10003;|&#10003;|&#10007;|&#10003;|&#10003;
-`get_dataset_urls`|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;
-`get_feeds`|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;
-`get_opportunities`|&#10007;|&#10003;|&#10003;|&#10003;|&#10003;
+Function|`flat`<br>bool|`verbose`<br>bool|`preview`<br>bool|`seconds_wait_next`<br>num|`seconds_wait_retry`<br>num|`num_tries_max`<br>int
+:---|:---|:---|:---|:---|:---|:---
+`get_catalogue_urls`|&#10003;|&#10003;|&#10003;|&#10007;|&#10003;|&#10003;
+`get_dataset_urls`|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;
+`get_feeds`|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;|&#10003;
+`get_opportunities`|&#10007;|&#10003;|&#10007;|&#10003;|&#10003;|&#10003;
 
 # References
 
@@ -592,9 +684,8 @@ The main locations:
 - [GitHub](https://github.com/openactive)
 
 The complete set of OpenActive specifications:
-- [Realtime Paged Data Exchange (RPDE) data transfer protocol](https://openactive.io/realtime-paged-data-exchange/EditorsDraft/)
-- [Opportunity data primer](https://openactive.io/opportunity-data-primer/)
-- [Opportunity data model](https://openactive.io/modelling-opportunity-data/EditorsDraft/)
+- [Realtime Paged Data Exchange (RPDE) data transfer protocol](https://openactive.io/realtime-paged-data-exchange/1.0/)
+- [Opportunity data model](https://openactive.io/modelling-opportunity-data/2.0/)
 - [Dataset model](https://openactive.io/dataset-api-discovery/EditorsDraft/)
 - [Route model](https://openactive.io/route-guide/EditorsDraft/)
 - [Booking system model](https://openactive.io/open-booking-api/EditorsDraft/1.0CR3/)
@@ -608,6 +699,6 @@ Community and communications:
 - [W3C](https://w3c.openactive.io/)
 - [Slack](https://slack.openactive.io/)
 - [LinkedIn](https://www.linkedin.com/company/openactiveio/)
-- [Twitter](https://twitter.com/openactiveio)
+- [X](https://x.com/openactiveio)
 - [Medium](https://openactiveio.medium.com/)
 - [YouTube](https://www.youtube.com/@openactive)
