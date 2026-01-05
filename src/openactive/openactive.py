@@ -557,7 +557,7 @@ superevent_labels = \
     +   ['league']
 subevent_labels = \
         ['ScheduledSession', 'ScheduledSessions', 'Session', 'Sessions', 'session', 'sessions', 'ScheduledSession.SessionSeries'] \
-    +   ['Slot', 'Slot for FacilityUse', 'FacilityUse/Slot', 'FacilityUse.Slot', 'IndividualFacilityUse/Slot'] \
+    +   ['Slot', 'Slot for FacilityUse', 'FacilityUse/Slot', 'FacilityUse.Slot', 'IndividualFacilityUse/Slot', 'IndividualFacilityUse.Slot'] \
     +   ['Event', 'event', 'HeadlineEvent', 'OnDemandEvent'] \
     +   ['CourseInstance']
 
