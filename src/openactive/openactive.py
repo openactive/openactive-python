@@ -571,6 +571,40 @@ def get_event_type(label):
 
 # --------------------------------------------------------------------------------------------------
 
+def get_superevents(subevent, superevent_opportunities, skip_superevent_ids=[]):
+    superevents = []
+
+    subevent_superevent_modified_id = get_subevent_superevent_modified_id(subevent)
+
+    if (subevent_superevent_modified_id is not None):
+        for superevent_id, superevent in superevent_opportunities['items'].items():
+            if (superevent_id not in skip_superevent_ids):
+                superevent_modified_ids = get_item_modified_ids(superevent)
+                if (subevent_superevent_modified_id in superevent_modified_ids):
+                    superevents.append(superevent)
+
+    return superevents
+
+# --------------------------------------------------------------------------------------------------
+
+def get_subevents(superevent, subevent_opportunities, skip_subevent_ids=[]):
+    subevents = []
+
+    superevent_modified_ids = get_item_modified_ids(superevent)
+
+    if (any(superevent_modified_ids)):
+        for subevent_id, subevent in subevent_opportunities['items'].items():
+            if (subevent_id not in skip_subevent_ids):
+                subevent_superevent_modified_id = get_subevent_superevent_modified_id(subevent)
+                if (    (subevent_superevent_modified_id is not None)
+                    and (subevent_superevent_modified_id in superevent_modified_ids)
+                ):
+                    subevents.append(subevent)
+
+    return subevents
+
+# --------------------------------------------------------------------------------------------------
+
 def get_superevent_id_v_subevent_ids(superevent_opportunities, subevent_opportunities, **kwargs):
     verbose = kwargs.get('verbose', False)
 
@@ -679,40 +713,6 @@ def get_superevent_id_v_subevent_ids(superevent_opportunities, subevent_opportun
     # --------------------------------------------------------------------------------------------------
 
     return superevent_id_v_subevent_ids
-
-# --------------------------------------------------------------------------------------------------
-
-def get_superevents(subevent, superevent_opportunities, skip_superevent_ids):
-    superevents = []
-
-    subevent_superevent_modified_id = get_subevent_superevent_modified_id(subevent)
-
-    if (subevent_superevent_modified_id is not None):
-        for superevent_id, superevent in superevent_opportunities['items'].items():
-            if (superevent_id not in skip_superevent_ids):
-                superevent_modified_ids = get_item_modified_ids(superevent)
-                if (subevent_superevent_modified_id in superevent_modified_ids):
-                    superevents.append(superevent)
-
-    return superevents
-
-# --------------------------------------------------------------------------------------------------
-
-def get_subevents(superevent, subevent_opportunities, skip_subevent_ids):
-    subevents = []
-
-    superevent_modified_ids = get_item_modified_ids(superevent)
-
-    if (any(superevent_modified_ids)):
-        for subevent_id, subevent in subevent_opportunities['items'].items():
-            if (subevent_id not in skip_subevent_ids):
-                subevent_superevent_modified_id = get_subevent_superevent_modified_id(subevent)
-                if (    (subevent_superevent_modified_id is not None)
-                    and (subevent_superevent_modified_id in superevent_modified_ids)
-                ):
-                    subevents.append(subevent)
-
-    return subevents
 
 # --------------------------------------------------------------------------------------------------
 
